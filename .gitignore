@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# pdf.js worker is copied in by `postinstall` — never commit the artefact
+public/pdf.worker.min.mjs
+
+# Test resumes are personal documents. The directory is tracked, the PDFs are not.
+fixtures/resumes/*
+!fixtures/resumes/README.md
+!fixtures/resumes/.gitkeep
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
