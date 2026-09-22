@@ -28,5 +28,7 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
-  }
+  },
+  "license": "MIT",
+  "description": "Turn a resume into a static portfolio site, entirely in the browser. No backend, no LLM, no upload."
 }
