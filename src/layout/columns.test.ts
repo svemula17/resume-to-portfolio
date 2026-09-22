@@ -202,6 +202,64 @@ describe("detectColumns", () => {
     expect(detectColumns(page([...body, ...strays])).type).toBe("single");
   });
 
+  it("accepts aligned rows when the gutter is tight", () => {
+    // A sidebar and a main column laid out on a shared grid: every row
+    // straddles the gap, so the straddle ratio alone would reject this. The
+    // gutter is 30pt — typographic, not tab-stop slack — so it is a column.
+    const left = column(
+      ["SKILLS", "TypeScript", "React", "Go", "Kubernetes", "AWS", "Terraform"],
+      50,
+      140,
+      { width: 130 },
+    );
+    const right = column(
+      [
+        "EXPERIENCE",
+        "Staff Engineer, Acme Corp",
+        "Owned the payments platform",
+        "Led a team of six engineers",
+        "Engineer, Initech",
+        "Wrote the migration tooling",
+        "Kept the lights on",
+      ],
+      210,
+      140,
+      { width: 330 },
+    );
+
+    const layout = detectColumns(page([...left, ...right]));
+    expect(layout.type).toBe("two-column");
+    if (layout.type !== "two-column") return;
+    expect(layout.gutterEnd - layout.gutterStart).toBeLessThan(612 * 0.08);
+  });
+
+  it("still rejects aligned rows when the band is tab-stop wide", () => {
+    // Same row alignment, but the gap is 220pt. That is not a gutter, it is
+    // the slack in front of a right-hand tab stop.
+    const left = column(
+      ["Acme Corporation", "Globex", "Initech", "Umbrella", "Stark", "Wayne", "Cyberdyne"],
+      72,
+      140,
+      { width: 110 },
+    );
+    const right = column(
+      [
+        "Jan 2020 - Present",
+        "Mar 2017 - Dec 2019",
+        "Jun 2015 - Feb 2017",
+        "Jan 2014 - May 2015",
+        "Sep 2012 - Dec 2013",
+        "Jun 2011 - Aug 2012",
+        "Jan 2010 - May 2011",
+      ],
+      420,
+      140,
+      { width: 120 },
+    );
+
+    expect(detectColumns(page([...left, ...right])).type).toBe("single");
+  });
+
   it("returns single for an empty page rather than throwing", () => {
     expect(detectColumns(page([])).type).toBe("single");
   });

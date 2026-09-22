@@ -57,6 +57,26 @@ const MIN_SIDE_LINES = 3;
 const MAX_STRADDLE_RATIO = 0.3;
 
 /**
+ * The straddle check's own escape hatch, and the reason it is safe to be
+ * aggressive above.
+ *
+ * Some two-column resumes do align their rows across the gutter — a sidebar
+ * and a main column laid out on a shared grid — and those would be rejected by
+ * the straddle ratio alone. What still separates them from a tabbed layout is
+ * the width of the gap: a typographic gutter is deliberately tight, 15-40pt on
+ * a Letter page, because the designer wants the columns to read as one spread.
+ * The whitespace in a tabbed layout is not designed at all — it is the slack
+ * between ragged left-hand text and a tab stop near the right margin, and it
+ * routinely runs to 150-250pt.
+ *
+ * So a high straddle ratio is forgiven when the gap is tight enough to be a
+ * real gutter (~49pt on a 612pt page) and both sides carry enough lines to be
+ * columns. A wide band plus lines spanning it stays single, every time.
+ */
+const TIGHT_GUTTER_RATIO = 0.08;
+const TIGHT_GUTTER_MIN_LINES = 6;
+
+/**
  * Full-width header blocks fill the buckets a gutter would occupy, hiding it.
  * Rather than guess at which items are "header-ish", the search is retried
  * with progressively more of the top of the page held out. The first band that
@@ -206,7 +226,12 @@ export function detectColumns(page: Page): ColumnLayout {
     const rightLines = groupIntoLines(page, rightItems).length;
     if (leftLines < MIN_SIDE_LINES || rightLines < MIN_SIDE_LINES) continue;
 
-    if (straddleRatio(page, gap, bandBottom) > MAX_STRADDLE_RATIO) continue;
+    if (straddleRatio(page, gap, bandBottom) > MAX_STRADDLE_RATIO) {
+      const tightGutter = gap.width <= page.width * TIGHT_GUTTER_RATIO;
+      const substantial =
+        leftLines >= TIGHT_GUTTER_MIN_LINES && rightLines >= TIGHT_GUTTER_MIN_LINES;
+      if (!tightGutter || !substantial) continue;
+    }
 
     return {
       type: "two-column",
