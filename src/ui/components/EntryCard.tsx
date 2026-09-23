@@ -41,20 +41,24 @@ export function EntryCard({ path, id, entry, index, count, compact, onRemoved }:
   const title = (section.title as (item: ListEntry) => string)(entry);
   const flags = entryFlagCount(state, id);
   const collapsed = isCollapsed(id);
-  const lastIndex = useRef(index);
+  const movedRef = useRef(false);
 
-  // After a move, keep the card in view. Focus is already on the header or
-  // a field inside, and the keyed DOM node moved with it.
+  // After a move, keep the card in view. Only after a move this card asked
+  // for: a remove above shifts every following card's index too, and
+  // scrolling on each of those would drag the viewport to the last one.
   useEffect(() => {
-    if (lastIndex.current !== index) {
-      lastIndex.current = index;
-      headerRef.current?.scrollIntoView({ block: "nearest" });
-    }
+    if (!movedRef.current) return;
+    movedRef.current = false;
+    headerRef.current?.scrollIntoView({ block: "nearest" });
   }, [index]);
 
   const move = (delta: -1 | 1) => {
     const target = index + delta;
     if (target < 0 || target >= count) return;
+    // The button that was clicked disables itself at either end, and a
+    // disabled element cannot hold focus: keep it on the card.
+    if (target === 0 || target === count - 1) headerRef.current?.focus();
+    movedRef.current = true;
     dispatch({ type: "MOVE_ENTRY", id, delta });
     announce(`Moved to position ${target + 1} of ${count}`);
   };
@@ -77,7 +81,10 @@ export function EntryCard({ path, id, entry, index, count, compact, onRemoved }:
   };
 
   const onCardKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+    // The bare chord only. Alt+Shift+Arrow is select-to-paragraph on macOS
+    // and must keep working inside a bullets textarea.
+    const bareAlt = event.altKey && !event.shiftKey && !event.metaKey && !event.ctrlKey;
+    if (bareAlt && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
       event.preventDefault();
       move(event.key === "ArrowUp" ? -1 : 1);
     } else if (event.key === "Escape" && event.target !== headerRef.current) {
@@ -111,8 +118,9 @@ export function EntryCard({ path, id, entry, index, count, compact, onRemoved }:
         />
         <span className="rf-card-title">{title}</span>
         {flags > 0 && (
-          <span className="rf-card-badge" aria-label={`${flags} to review`}>
+          <span className="rf-card-badge">
             {flags}
+            <span className="sr-only"> to review</span>
           </span>
         )}
         <div className="rf-card-actions">
@@ -120,7 +128,11 @@ export function EntryCard({ path, id, entry, index, count, compact, onRemoved }:
             <button
               type="button"
               className="rf-btn rf-btn-quiet rf-btn-small"
-              onClick={() => dispatch({ type: "MARK_ENTRY_REVIEWED", id })}
+              onClick={() => {
+                // This button hides itself once the entry has no flags.
+                headerRef.current?.focus();
+                dispatch({ type: "MARK_ENTRY_REVIEWED", id });
+              }}
               aria-label={`Looks right: ${title}`}
               title="Mark every flagged field in this entry as looks right"
             >

@@ -10,6 +10,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { parseBlockAs, type ImportTarget } from "../review/blocks";
 import { SECTIONS } from "../review/descriptors";
 import type { BlockId } from "../review/keys";
+import { peekEntryId } from "../review/state";
 import { useAnnounce } from "../hooks/useAnnounce";
 import { useReview } from "./review-context";
 
@@ -23,19 +24,28 @@ interface Props {
 }
 
 export function AddToMenu({ text, heading, blockId, onDone }: Props) {
-  const { dispatch } = useReview();
+  const { state, dispatch, focusEntry } = useReview();
   const announce = useAnnounce();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const id = useId();
 
+  // A menu owns focus while open: first item on open, arrows to move,
+  // Escape back to the trigger. Closing without moving focus somewhere
+  // deliberate drops it to <body>.
   useEffect(() => {
     if (!open) return;
+    listRef.current?.querySelector<HTMLElement>("[role=menuitem]")?.focus();
     const onDown = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -45,18 +55,36 @@ export function AddToMenu({ text, heading, blockId, onDone }: Props) {
     };
   }, [open]);
 
+  const onListKey = (event: React.KeyboardEvent<HTMLUListElement>) => {
+    const items = [...(listRef.current?.querySelectorAll<HTMLElement>("[role=menuitem]") ?? [])];
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    const go = (next: number) => {
+      event.preventDefault();
+      items[(next + items.length) % items.length]?.focus();
+    };
+    if (event.key === "ArrowDown") go(index + 1);
+    else if (event.key === "ArrowUp") go(index - 1);
+    else if (event.key === "Home") go(0);
+    else if (event.key === "End") go(items.length - 1);
+  };
+
   const choose = (target: ImportTarget | "summary") => {
     setOpen(false);
     if (target === "summary") {
       dispatch({ type: "APPEND_SUMMARY", text, blockId });
       announce("Added to summary.");
+      triggerRef.current?.focus();
     } else {
       const entries = parseBlockAs(target, text, heading);
       if (entries.length === 0) {
         announce("Nothing to add.");
+        triggerRef.current?.focus();
         return;
       }
+      // Peek before dispatch: the first minted id is where focus goes.
+      const first = peekEntryId(state, target);
       dispatch({ type: "IMPORT_ENTRIES", path: target, entries, blockId } as Parameters<typeof dispatch>[0]);
+      focusEntry(first);
       const singular = SECTIONS[target].singular;
       announce(`Added ${entries.length} ${entries.length === 1 ? singular : `${singular}s`} to ${SECTIONS[target].label}.`);
     }
@@ -66,6 +94,7 @@ export function AddToMenu({ text, heading, blockId, onDone }: Props) {
   return (
     <div className="rf-menu" ref={menuRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="rf-btn rf-btn-small"
         aria-haspopup="menu"
@@ -76,7 +105,7 @@ export function AddToMenu({ text, heading, blockId, onDone }: Props) {
         Add to ▾
       </button>
       {open && (
-        <ul className="rf-menu-list" role="menu" id={id}>
+        <ul className="rf-menu-list" role="menu" id={id} ref={listRef} onKeyDown={onListKey}>
           {TARGETS.map((target) => (
             <li key={target} role="none">
               <button type="button" role="menuitem" onClick={() => choose(target)}>

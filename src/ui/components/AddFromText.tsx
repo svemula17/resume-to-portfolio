@@ -15,8 +15,8 @@ import { useReview } from "./review-context";
 
 interface Props {
   path: ImportTarget;
-  /** Called with the number of entries added, so the section can focus the first. */
-  onAdded: (count: number) => void;
+  /** Called after a successful import, so the section can focus the first entry. */
+  onAdded: () => void;
 }
 
 export function AddFromText({ path, onAdded }: Props) {
@@ -37,7 +37,7 @@ export function AddFromText({ path, onAdded }: Props) {
     announce(`Added ${entries.length} ${entries.length === 1 ? singular : `${singular}s`}.`);
     setText("");
     setOpen(false);
-    onAdded(entries.length);
+    onAdded();
   };
 
   if (!open) {
@@ -58,11 +58,11 @@ export function AddFromText({ path, onAdded }: Props) {
         className="rf-textarea"
         value={text}
         autoFocus
+        data-shortcuts="off"
         onChange={(event) => setText(event.target.value)}
         onKeyDown={(event) => {
           if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
             event.preventDefault();
-            event.stopPropagation();
             submit();
           }
         }}

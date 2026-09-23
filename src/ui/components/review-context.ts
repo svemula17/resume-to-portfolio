@@ -20,6 +20,12 @@ export interface ReviewContextValue {
   showAllIssues: boolean;
   isCollapsed: (id: EntryId) => boolean;
   setCollapsed: (id: EntryId, collapsed: boolean) => void;
+  /**
+   * Focus the first field of an entry once it exists in the DOM. Call it
+   * with the id the next mint will produce (peekEntryId) before dispatching
+   * the add or import; the form expands the card and focuses after render.
+   */
+  focusEntry: (id: EntryId) => void;
 }
 
 export const ReviewContext = createContext<ReviewContextValue | null>(null);

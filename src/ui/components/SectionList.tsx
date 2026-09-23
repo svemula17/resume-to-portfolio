@@ -6,7 +6,7 @@
  * EntryCard reads fields through the descriptor table and never needs to
  * know which section it is in.
  */
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { isFlagged } from "../review/adopt";
 import { SECTIONS } from "../review/descriptors";
 import type { ListPath } from "../review/keys";
@@ -23,38 +23,19 @@ interface Props<P extends ListPath> {
   compact?: boolean;
 }
 
-/** Focus the first field, or the header, of a card. */
-function focusCard(root: HTMLElement | null, id: string): void {
-  const card = root?.querySelector<HTMLElement>(`[data-entry-id="${id}"]`);
-  if (!card) return;
-  const field = card.querySelector<HTMLElement>("[data-fkey]:not(:disabled)");
-  (field ?? card.querySelector<HTMLElement>("[data-entry-header]"))?.focus();
-}
-
 export function SectionList<P extends ListPath>({ path, compact }: Props<P>) {
-  const { state, dispatch, setCollapsed } = useReview();
+  const { state, dispatch, focusEntry } = useReview();
   const announce = useAnnounce();
   const rootRef = useRef<HTMLDivElement>(null);
   const addRef = useRef<HTMLButtonElement>(null);
   const section = SECTIONS[path];
   const items = listOf(state.resume, path) as readonly ListEntry[];
   const ids = state.entryIds[path];
-  const pendingFocus = useRef<string | null>(null);
-
-  // A just-added or just-imported entry gets focus once it exists in the
-  // DOM — which is after the render that follows the dispatch, hence an
-  // effect keyed on the id list rather than a synchronous focus call.
-  useEffect(() => {
-    if (!pendingFocus.current) return;
-    focusCard(rootRef.current, pendingFocus.current);
-    pendingFocus.current = null;
-  }, [ids]);
 
   const add = () => {
     const id = peekEntryId(state, path);
     dispatch({ type: "ADD_ENTRY", path });
-    setCollapsed(id, false);
-    pendingFocus.current = id;
+    focusEntry(id);
     announce(`Added ${section.singular}.`);
   };
 
@@ -72,13 +53,10 @@ export function SectionList<P extends ListPath>({ path, compact }: Props<P>) {
     }
   };
 
-  const onImported = (count: number) => {
+  const onImported = () => {
     // importEntries mints ids from nextId at the time of dispatch; the first
     // new one is the id the peek would have produced.
-    const first = peekEntryId(state, path);
-    setCollapsed(first, false);
-    pendingFocus.current = first;
-    void count;
+    focusEntry(peekEntryId(state, path));
   };
 
   const groupKey = path === "basics.links" ? ("basics.links" as const) : null;

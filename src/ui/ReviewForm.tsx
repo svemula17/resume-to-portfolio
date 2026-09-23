@@ -5,7 +5,7 @@
  * have been touched, whether a download has been attempted — and is keyed
  * on loadSeq by App so all of it resets when a new document loads.
  */
-import { useCallback, useMemo, useRef, useState, type Dispatch } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch } from "react";
 import { AnnouncerProvider } from "./components/Announcer";
 import { BasicsPanel } from "./components/BasicsPanel";
 import { ReviewHeader } from "./components/ReviewHeader";
@@ -22,7 +22,7 @@ import { issues, toResumeJson } from "./review/export";
 import type { HistoryAction, HistoryState } from "./review/history";
 import { LIST_PATHS, SECTION_ORDER, type EntryId, type FieldKey } from "./review/keys";
 import { entryFlagCount, flagCount } from "./review/selectors";
-import type { ReviewState } from "./review/state";
+import { reviewReducer, type ReviewState } from "./review/state";
 
 interface Props {
   history: HistoryState;
@@ -71,16 +71,46 @@ function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onU
 
   const ensureVisible = useCallback((id: EntryId) => setCollapsed(id, false), [setCollapsed]);
 
+  // Entry focus after add or import. The card does not exist until the
+  // render after the dispatch, so the request is parked and honoured by an
+  // effect keyed on the id lists. Every path that creates entries — Add,
+  // Add from text, Add to ▾ from the Source panel — goes through here, so
+  // focus never falls to <body> where the shortcuts cannot see it.
+  const pendingEntry = useRef<EntryId | null>(null);
+  const focusEntry = useCallback(
+    (id: EntryId) => {
+      setCollapsed(id, false);
+      pendingEntry.current = id;
+    },
+    [setCollapsed],
+  );
+  useEffect(() => {
+    const id = pendingEntry.current;
+    if (!id) return;
+    const card = rootRef.current?.querySelector<HTMLElement>(`[data-entry-id="${id}"]`);
+    if (!card) return;
+    pendingEntry.current = null;
+    const field = card.querySelector<HTMLElement>("[data-fkey]:not(:disabled)");
+    (field ?? card.querySelector<HTMLElement>("[data-entry-header]"))?.focus();
+    card.scrollIntoView({ block: "nearest" });
+  }, [state.entryIds, collapsed]);
+
   const walk = useFlagQueue({ state, rootRef, ensureVisible, loadSeq: state.loadSeq });
 
   const acceptAndNext = useCallback(() => {
     const key = walk.cursor();
+    // The search runs over the state as it will be after the mark, not as
+    // it is now. Dispatch does not update `state` inside this handler, and
+    // searching the pre-mark state from the last flag on the page wraps
+    // straight back onto that same flag.
+    let after = state;
     if (key && isFlagged(state.review[key])) {
       dispatch({ type: "MARK_REVIEWED", key });
+      after = reviewReducer(state, { type: "MARK_REVIEWED", key });
     }
-    const next = walk.next();
+    const next = walk.next(after);
     if (!next) announce("Nothing left to review.");
-  }, [walk, state.review, dispatch, announce]);
+  }, [walk, state, dispatch, announce]);
 
   const handlers = useMemo(
     () => ({
@@ -124,8 +154,9 @@ function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onU
       showAllIssues,
       isCollapsed: (id) => collapsed.has(id),
       setCollapsed,
+      focusEntry,
     }),
-    [state, dispatch, issuesByKey, touched, showAllIssues, collapsed, setCollapsed],
+    [state, dispatch, issuesByKey, touched, showAllIssues, collapsed, setCollapsed, focusEntry],
   );
 
   return (

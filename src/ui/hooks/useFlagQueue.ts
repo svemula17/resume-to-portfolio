@@ -79,12 +79,15 @@ export function useFlagQueue({ state, rootRef, ensureVisible, loadSeq }: Options
   });
 
   const goTo = useCallback(
-    (direction: 1 | -1) => {
+    (direction: 1 | -1, from: ReviewState = state) => {
       // Wrap. Imports append entries that sit earlier in document order
       // than wherever the walk has reached, and a walk that stops at the
       // bottom with flags still above it is a walk the user has to restart
-      // by hand.
-      const key = nextFlagKey(state, cursor(), direction) ?? nextFlagKey(state, null, direction);
+      // by hand. The wrap must not land back on the cursor itself, which
+      // is what happens when the cursor is the last flag on the page.
+      const here = cursor();
+      const wrapped = nextFlagKey(from, null, direction);
+      const key = nextFlagKey(from, here, direction) ?? (wrapped === here ? null : wrapped);
       if (key) focusKey(key);
       return key;
     },
@@ -92,6 +95,13 @@ export function useFlagQueue({ state, rootRef, ensureVisible, loadSeq }: Options
   );
 
   // On load, land in the first flagged field so the walk starts itself.
+  //
+  // focusKey is called directly, not parked in `pending`. The retry effect
+  // above runs before this one on the mount pass, and nothing else is
+  // guaranteed to re-render the form afterwards — in the first version the
+  // focus arrived only when autosave's debounced status update happened to
+  // re-render, 400 ms late, and never at all with storage unavailable.
+  // StrictMode's double effect pass masked it in development.
   const autoFocused = useRef(-1);
   useEffect(() => {
     if (autoFocused.current === loadSeq) return;
@@ -100,11 +110,16 @@ export function useFlagQueue({ state, rootRef, ensureVisible, loadSeq }: Options
     if (first) {
       const owner = ownerOf(first);
       if (owner) ensureVisible(owner);
-      pending.current = first;
+      focusKey(first);
     }
     // Only on a new document; the walk owns focus after that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadSeq]);
 
-  return { cursor, next: () => goTo(1), prev: () => goTo(-1), focusKey };
+  return {
+    cursor,
+    next: (from?: ReviewState) => goTo(1, from),
+    prev: (from?: ReviewState) => goTo(-1, from),
+    focusKey,
+  };
 }

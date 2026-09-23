@@ -9,6 +9,16 @@
  * Cmd/Ctrl+Enter was chosen over Cmd+J (Chrome's downloads shelf) and
  * Ctrl+. (IME). Alt+Arrow and Delete on a card header are handled by the
  * card itself; this hook owns the document-level chords.
+ *
+ * The listener is on the document, not the form root. Focus falls to
+ * <body> whenever the focused element unmounts — a Looks right button
+ * that hides itself, a block card that becomes a stub — and a chord that
+ * dies until the user clicks back in is a chord they stop trusting. Events
+ * from outside the form (and not on body) are ignored.
+ *
+ * `data-shortcuts="off"` on an element opts its subtree out of the walk
+ * chord. A native listener runs before React's synthetic handlers, so a
+ * child cannot stopPropagation its way out; the attribute is the contract.
  */
 import { useEffect, type RefObject } from "react";
 
@@ -37,7 +47,12 @@ export function useShortcuts(rootRef: RefObject<HTMLElement | null>, handlers: H
       const mod = event.metaKey || event.ctrlKey;
       if (!mod) return;
 
+      const target = event.target;
+      const inForm = target instanceof Node && root.contains(target);
+      if (!inForm && target !== document.body) return;
+
       if (event.key === "Enter") {
+        if (target instanceof HTMLElement && target.closest('[data-shortcuts="off"]')) return;
         event.preventDefault();
         if (event.shiftKey) handlers.back();
         else handlers.acceptAndNext();
@@ -62,7 +77,7 @@ export function useShortcuts(rootRef: RefObject<HTMLElement | null>, handlers: H
       }
     };
 
-    root.addEventListener("keydown", onKey);
-    return () => root.removeEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [rootRef, handlers]);
 }
