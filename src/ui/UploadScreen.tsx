@@ -19,6 +19,7 @@ export function UploadScreen({ onParsed, restoreFailed }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState("");
   const textId = useId();
+  const fileId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
@@ -51,8 +52,11 @@ export function UploadScreen({ onParsed, restoreFailed }: Props) {
       {restoreFailed && <div className="rf-banner rf-banner-warn">A previous draft couldn't be restored.</div>}
 
       <div className="rf-upload-box">
-        <h2>Upload a PDF or DOCX</h2>
+        <h2>
+          <label htmlFor={fileId}>Upload a PDF or DOCX</label>
+        </h2>
         <input
+          id={fileId}
           ref={inputRef}
           type="file"
           accept=".pdf,.docx"

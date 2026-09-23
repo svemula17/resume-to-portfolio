@@ -112,17 +112,35 @@ function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onU
     if (!next) announce("Nothing left to review.");
   }, [walk, state, dispatch, announce]);
 
+  const undo = useCallback(() => {
+    if (history.past.length === 0) {
+      announce("Nothing to undo.");
+      return;
+    }
+    dispatch({ type: "UNDO" });
+    announce("Undone.");
+  }, [history.past.length, dispatch, announce]);
+
+  const redo = useCallback(() => {
+    if (history.future.length === 0) {
+      announce("Nothing to redo.");
+      return;
+    }
+    dispatch({ type: "REDO" });
+    announce("Redone.");
+  }, [history.future.length, dispatch, announce]);
+
   const handlers = useMemo(
     () => ({
       acceptAndNext,
       back: () => {
         walk.prev();
       },
-      undo: () => dispatch({ type: "UNDO" }),
-      redo: () => dispatch({ type: "REDO" }),
+      undo,
+      redo,
       save: flush,
     }),
-    [acceptAndNext, walk, dispatch, flush],
+    [acceptAndNext, walk, undo, redo, flush],
   );
   useShortcuts(rootRef, handlers);
 
@@ -170,8 +188,8 @@ function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onU
           onNext={acceptAndNext}
           canUndo={history.past.length > 0}
           canRedo={history.future.length > 0}
-          onUndo={() => dispatch({ type: "UNDO" })}
-          onRedo={() => dispatch({ type: "REDO" })}
+          onUndo={undo}
+          onRedo={redo}
           status={status}
           onUploadAnother={onUploadAnother}
           onStartOver={onStartOver}

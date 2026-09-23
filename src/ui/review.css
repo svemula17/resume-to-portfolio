@@ -600,10 +600,13 @@
   cursor: pointer;
 }
 
-.rf-menu-list button:hover,
-.rf-menu-list button:focus-visible {
+.rf-menu-list button:hover {
   background: var(--rf-panel);
-  outline: none;
+}
+
+.rf-menu-list button:focus-visible {
+  outline: 2px solid var(--rf-focus);
+  outline-offset: -2px;
 }
 
 .rf-fulltext {

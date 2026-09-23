@@ -12,13 +12,19 @@ import { AnnouncerContext, type Announce } from "./announcer-context";
 
 export function AnnouncerProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState("");
-  const [nonce, setNonce] = useState(0);
 
+  // One region that lives for the life of the form. Screen readers watch a
+  // live region for changes; a region that is unmounted and re-inserted
+  // already containing its text is a new element, not a change, and many
+  // readers say nothing. The first version keyed the div on a nonce and
+  // was silent for exactly that reason.
+  //
+  // Repeating the same text must still announce, and equal text is not a
+  // change either — so the region is cleared first and filled on the next
+  // frame.
   const announce = useCallback<Announce>((next) => {
-    setMessage(next);
-    // Repeating the same message must still announce, and a live region only
-    // fires on DOM change; the nonce forces a change even for equal text.
-    setNonce((n) => n + 1);
+    setMessage("");
+    requestAnimationFrame(() => setMessage(next));
   }, []);
 
   const value = useMemo(() => announce, [announce]);
@@ -26,7 +32,7 @@ export function AnnouncerProvider({ children }: { children: ReactNode }) {
   return (
     <AnnouncerContext.Provider value={value}>
       {children}
-      <div className="sr-only" aria-live="polite" aria-atomic="true" key={nonce}>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
         {message}
       </div>
     </AnnouncerContext.Provider>

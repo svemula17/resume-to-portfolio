@@ -65,6 +65,7 @@ export function FieldInput({
 }: Props) {
   const id = useId();
   const issueId = `${id}-issue`;
+  const chipId = `${id}-chip`;
   const { widget, label } = descriptor;
   const disabled = descriptor.disabledWhen !== undefined && disabledBy === true;
   const visibleIssue = showIssue && issue ? issue : undefined;
@@ -80,9 +81,16 @@ export function FieldInput({
     .filter(Boolean)
     .join(" ");
 
-  const chip = (
-    <FlagChip record={record} flagged={flagged} missing={missing} onReview={onReview} onReflag={onReflag} />
-  );
+  // The chip sits beside the label, never inside it. A button inside a
+  // <label> is invalid HTML, and its text would become part of the input's
+  // accessible name — "Name Check · 40% · Looks right" — instead of a
+  // description of its state.
+  const chip = record ? (
+    <span id={chipId}>
+      <FlagChip record={record} flagged={flagged} missing={missing} onReview={onReview} onReflag={onReflag} />
+    </span>
+  ) : null;
+  const describedBy = [visibleIssue ? issueId : null, record ? chipId : null].filter(Boolean).join(" ") || undefined;
 
   if (widget === "checkbox") {
     return (
@@ -92,6 +100,7 @@ export function FieldInput({
           type="checkbox"
           data-fkey={fieldKey}
           checked={value === true}
+          aria-describedby={describedBy}
           onChange={(event) => onChange(event.target.checked)}
           onBlur={onBlur}
         />
@@ -104,15 +113,14 @@ export function FieldInput({
   }
 
   const text = toText(value, widget);
-  const describedBy = visibleIssue ? issueId : undefined;
   const placeholder = disabled ? "Present" : descriptor.placeholder;
 
   return (
     <div className={stateClass}>
-      <label htmlFor={id} className="rf-field-label">
-        {label}
+      <div className="rf-field-label">
+        <label htmlFor={id}>{label}</label>
         {chip}
-      </label>
+      </div>
       {widget === "textarea" || widget === "lines" ? (
         <textarea
           id={id}
