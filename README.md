@@ -6,9 +6,9 @@ Everything happens in the browser. The resume is never uploaded, there is no
 backend, no LLM, and no network request at runtime. Parsing is rule-based, so
 it is deterministic, debuggable, free, and works offline.
 
-> **Status: stage 2 of 6.** Scaffold, reading order and the parser exist.
-> There is no review form, no templates and no export yet — those are stages
-> 3 and 4. See [Build plan](#build-plan).
+> **Status: stage 3 of 6.** Upload, parse, review and download `resume.json`
+> all work. There are no templates and no site export yet — that is stage 4.
+> See [Build plan](#build-plan).
 
 ## Why build it this way
 
@@ -32,7 +32,7 @@ npm run dev
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Spike UI on http://localhost:5173 |
+| `npm run dev` | The app on http://localhost:5173 (`?debug` for the stage-1 overlay) |
 | `npm test` | Vitest, once |
 | `npm run test:watch` | Vitest, watching |
 | `npm run build` | Typecheck then production build |
@@ -68,10 +68,10 @@ Upload (PDF / DOCX)
       |
       v
   resume.json   <- validated by Zod (SINGLE SOURCE OF TRUTH)
-      |             <- you are here
+      |
       v
   [ REVIEW  ]   editable form; low-confidence fields flagged
-      |
+      |             <- you are here
       v
   [ RENDER  ]   resume.json + templateId -> { index.html, styles.css }
       |
@@ -102,9 +102,15 @@ src/
     from-text.ts          plain text -> Line[], so DOCX shares the engine
     fields/               basics, experience, education, skills, projects, certs
     index.ts              orchestrates -> { data, confidence }
-  spike/
-    DebugOverlay.tsx      draws the layout decision on the rendered page
-    ParsedView.tsx        resume.json with confidence per field
+  ui/
+    review/               headless: keys, state, adopt, history, selectors,
+                          descriptors, export, blocks — all tested without a DOM
+    storage/              safe localStorage shim, versioned draft envelope
+    hooks/                autosave, the flag walk, shortcuts
+    components/           FieldInput, EntryCard, SectionList, SourcePanel, …
+    ReviewForm.tsx        the stage-3 screen
+    UploadScreen.tsx      file or pasted text
+  spike/                  the stage-1 overlay, behind ?debug
 fixtures/
   text/                   invented plain-text resumes (the DOCX shape)
   expected/               what each one must parse to
@@ -254,6 +260,57 @@ exists and absent without consequence where it does not.
   on the others.
 - **Skills written as prose** split on commas like a list would.
 
+## The review form
+
+Rule parsing is 80–90% on single-column resumes and 40–60% on two-column.
+The form is what absorbs the gap, and it is designed around one number:
+the worst-parsed resume to a correct `resume.json` in under two minutes.
+
+### What makes it fast
+
+**The flag walk.** On load, focus lands in the first field the parser was
+unsure about. Cmd/Ctrl+Enter means "looks right, next"; typing means "here
+is the answer". Parser silence counts as a stop too: a job with no company
+gets a dashed *Missing* field, because the commonest two-column fault is a
+field the parser never wrote at all.
+
+**Lists are one control.** Bullets are a textarea, one per line; skills are
+comma-separated. Eight bullets from the source panel are one paste.
+
+**The Source panel.** Every section the parser could not place sits on the
+right with *Add to ▾*. A three-project block under a heading the parser has
+never seen becomes three project cards in one click, through the same
+field parsers the first parse used. Selecting any span of the full text
+does the same.
+
+**Undo.** Cmd/Ctrl+Z outside a text field. Repairing a mis-split column is
+delete, delete, delete.
+
+### How it is built
+
+Identity, not indices. Every entry gets an id at load and every review
+record is keyed by it, so removing an entry is a prefix delete and
+reordering touches nothing. The parser's `experience.0.company` becomes
+`e1.company` once, in `adopt()`, and no index survives past that point.
+
+Descriptors, not a schema walker. Each section's field table is checked
+with `satisfies` against the Zod type at compile time, and a conformance
+test walks the schema at test time. Add a field to the schema and `tsc`
+fails until the form knows about it.
+
+The working state is allowed to be untidy — `""` in optionals, a trailing
+empty bullet. `normalise()` enforces the contract once, at export, and
+that parsed value is what templates receive.
+
+Persistence is a versioned envelope in one localStorage key, debounced,
+flushed on pagehide, repaired on load, with a quota fallback that drops
+the source text before it drops your edits.
+
+### Measuring it
+
+`fixtures/resumes/README.md` has the stopwatch protocol. The reference run
+on the worst-case fixture is 8 stops and 4 clicks.
+
 ## Build plan
 
 | Stage | Goal | Status |
@@ -261,8 +318,8 @@ exists and absent without consequence where it does not.
 | 0 | Scaffold, schema, worker wired | ✅ done |
 | 1 | Reading-order spike | ✅ done — awaiting corpus scoring |
 | 2 | Parser: sections, subsections, field scoring | ✅ done — 1 real resume at 40/40, 0 flagged |
-| 3 | Review form generated from the schema | next |
-| 4 | Templates and ZIP export | |
+| 3 | Review form generated from the schema | ✅ done — worst-case fixture in 8 stops + 4 clicks |
+| 4 | Templates and ZIP export | next |
 | 5 | Ship: skills data, deploy, docs | |
 
 Out of scope for v1: OCR, three-column and sidebar layouts, LinkedIn import,

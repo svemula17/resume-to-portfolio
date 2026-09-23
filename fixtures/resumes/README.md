@@ -38,3 +38,40 @@ anyway — the single-column path alone is a shippable product.
 When something fails, turn on the debug overlay before changing any code.
 The gutter band shows what the histogram found; the numbered line boxes show
 the order it read them in. Wherever the numbers jump is the bug.
+
+## Stage 3 — the stopwatch protocol
+
+The stage-3 exit criterion is "the worst-parsed resume in the corpus to a
+correct `resume.json` in under two minutes". Until there is a corpus,
+`fixtures/text/worst-two-column.txt` stands in. It is an invented resume — no
+real person — that reproduces every known failure at once: no name line, a
+job with no company, a sidebar swallowed into the experience section, a
+three-project block under a non-standard heading, a caps project name that
+became its own heading, a flat skills list, two certifications on one line.
+
+Run it like this, every time the form changes:
+
+1. `npm run dev`, open the app, **Start over** if a draft is loaded.
+2. Open the fixture, select all, copy. Paste into "Or paste the text", press
+   **Parse text**.
+3. **Start the clock when the first field takes focus.**
+4. Work the walk. Cmd/Ctrl+Enter is "looks right, next"; type to fix. Use
+   **Add to ▾** on every unplaced block. Delete cards that are wrong.
+5. **Stop the clock when Download produces a file** and this checklist holds:
+   - name is `Alex Rivera`
+   - the first job has a company
+   - Initech is a job, not a leftover
+   - four projects: Vigil, Sandbox Harness, Red Team Corpus, VIGIL
+     (then delete the duplicate — that is part of the time)
+   - a `Languages` skill group exists
+   - three certifications
+   - zero flags, zero issues
+6. Record **time** and **stop count** (every Cmd+Enter is one stop).
+
+Reference run, scripted in a browser with no human latency: 8 stops, 4 Add
+to ▾ clicks, 3 removes. Target for a human: ≤ 2:00. If a run misses:
+
+- Over ~15 stops → drop `role` from the core set in `descriptors.ts`.
+- Entries merging on Add to ▾ → extend the `loose` split in
+  `src/parse/index.ts`; do not build a split tool.
+- Time lost hunting for a field → the walk is wrong, not the parser.
