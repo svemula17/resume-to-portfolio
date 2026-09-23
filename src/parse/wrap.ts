@@ -20,6 +20,9 @@ const EDGE_TOLERANCE = 3;
 
 const ENDS_SENTENCE = /[.!?;:]["')\]]?\s*$/;
 
+/** A title between bullet groups is a few words; a wrapped tail can be long. */
+const TITLE_MAX_CHARS = 48;
+
 /**
  * Whether `line` continues `previous`.
  *
@@ -36,7 +39,7 @@ const ENDS_SENTENCE = /[.!?;:]["')\]]?\s*$/;
  * case where a wrong merge does the most damage — swallowing a whole job
  * heading into the previous job's last bullet.
  */
-function continues(previous: Line, line: Line, hasGeometry: boolean): boolean {
+function continues(previous: Line, line: Line, next: Line | undefined, hasGeometry: boolean): boolean {
   if (isBulletLine(line.text)) return false;
   if (DATE_RANGE.test(line.text)) return false;
 
@@ -47,6 +50,16 @@ function continues(previous: Line, line: Line, hasGeometry: boolean): boolean {
   }
 
   if (/^[a-z]/.test(line.text)) return true;
+
+  // A short capitalised line sitting between two bullets is a title, not a
+  // wrapped tail: "Vigil / - guards tool calls / Sentinel / - scans prompts"
+  // is two projects, and without this the unpunctuated first bullet would
+  // swallow "Sentinel". Wrapped tails start mid-sentence, in lowercase, far
+  // more often than they start with a capital and stop short of a period.
+  if (next && isBulletLine(next.text) && line.text.length <= TITLE_MAX_CHARS && !ENDS_SENTENCE.test(line.text)) {
+    return false;
+  }
+
   return !ENDS_SENTENCE.test(previous.text);
 }
 
@@ -60,8 +73,8 @@ export function mergeWrappedLines(lines: Line[]): Line[] {
   const merged: Line[] = [];
   let openBullet: Line | null = null;
 
-  for (const line of lines) {
-    if (openBullet !== null && continues(openBullet, line, hasGeometry)) {
+  lines.forEach((line, index) => {
+    if (openBullet !== null && continues(openBullet, line, lines[index + 1], hasGeometry)) {
       const folded: Line = {
         ...openBullet,
         items: [...openBullet.items, ...line.items],
@@ -72,12 +85,12 @@ export function mergeWrappedLines(lines: Line[]): Line[] {
       };
       openBullet = folded;
       merged[merged.length - 1] = folded;
-      continue;
+      return;
     }
 
     merged.push(line);
     openBullet = isBulletLine(line.text) ? line : null;
-  }
+  });
 
   return merged;
 }
