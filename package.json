@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "postinstall": "node scripts/copy-pdf-worker.mjs",
     "fixtures:update": "tsx scripts/fixtures.mjs update",
-    "fixtures:score": "tsx scripts/fixtures.mjs score"
+    "fixtures:score": "tsx scripts/fixtures.mjs score",
+    "typecheck": "tsc -b && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "mammoth": "^1.12.3",

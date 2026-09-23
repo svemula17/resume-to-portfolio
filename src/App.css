@@ -151,3 +151,108 @@ figcaption {
   color: #fff;
   border-radius: 2px;
 }
+
+.pane-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tabs button {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.tabs button.active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.parsed {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.85rem;
+  max-height: 75vh;
+  overflow: auto;
+}
+
+.parsed-summary {
+  margin: 0 0 0.75rem;
+  color: #6b7280;
+}
+
+.parsed h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.parsed .entry {
+  padding: 0.5rem 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.parsed ul {
+  margin: 0.4rem 0 0 1.25rem;
+  padding: 0;
+  color: #374151;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.15rem 0;
+}
+
+.field-label {
+  color: #6b7280;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field-value {
+  word-break: break-word;
+}
+
+/* Confidence. Anything under the review threshold turns amber, because that
+   is the field the user should look at first. */
+.conf {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.conf-low {
+  color: #b45309;
+  background: #fef3c7;
+  padding: 0 0.3rem;
+  border-radius: 3px;
+}
+
+.parsed details {
+  margin-top: 1rem;
+}
+
+.parsed details pre {
+  max-height: 40vh;
+}

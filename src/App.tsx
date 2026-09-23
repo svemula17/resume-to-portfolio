@@ -15,7 +15,10 @@ import {
 } from "./extract";
 import { renderPageImages, type RenderedPage } from "./extract/render";
 import { toPageReadingOrders, type PageReadingOrder } from "./layout";
+import { parseLines, parseText } from "./parse";
+import type { ParseResult } from "./schema/resume";
 import { DebugOverlay } from "./spike/DebugOverlay";
+import { ParsedView } from "./spike/ParsedView";
 import "./App.css";
 
 interface Result {
@@ -23,6 +26,7 @@ interface Result {
   text: string;
   orders: PageReadingOrder[];
   rendered: RenderedPage[];
+  parsed: ParseResult;
 }
 
 function describeLayout(order: PageReadingOrder): string {
@@ -39,6 +43,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [debug, setDebug] = useState(true);
+  const [view, setView] = useState<"parsed" | "text">("parsed");
   const [showLineBoxes, setShowLineBoxes] = useState(true);
   const [showReadingOrder, setShowReadingOrder] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,7 +61,7 @@ export default function App() {
         // nothing for the overlay to draw. Say so rather than showing an empty
         // debug panel that looks like a failure.
         const text = await extractDocxText(file);
-        setResult({ fileName: file.name, text, orders: [], rendered: [] });
+        setResult({ fileName: file.name, text, orders: [], rendered: [], parsed: parseText(text) });
         return;
       }
 
@@ -73,8 +78,9 @@ export default function App() {
       // Rendering is only needed for the overlay, and it is the slow part, so
       // it is skipped entirely when the debug view is off.
       const rendered = debug ? await renderPageImages(file) : [];
+      const parsed = parseLines(orders.flatMap((order) => order.lines));
 
-      setResult({ fileName: file.name, text, orders, rendered });
+      setResult({ fileName: file.name, text, orders, rendered, parsed });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
@@ -85,10 +91,10 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Reading-order spike</h1>
+        <h1>Parser spike</h1>
         <p>
-          Stage 1. Upload a resume and check that the reconstructed text reads in the
-          order a human would read it. Nothing leaves your browser.
+          Stages 1–2. Upload a resume, check the reading order, check what the parser made
+          of it and how sure it was. Nothing leaves your browser.
         </p>
       </header>
 
@@ -132,8 +138,18 @@ export default function App() {
       {result && (
         <div className="panes">
           <section className="pane">
-            <h2>Reconstructed text — {result.fileName}</h2>
-            <pre>{result.text}</pre>
+            <div className="pane-header">
+              <h2>{result.fileName}</h2>
+              <div className="tabs">
+                <button className={view === "parsed" ? "active" : ""} onClick={() => setView("parsed")}>
+                  Parsed
+                </button>
+                <button className={view === "text" ? "active" : ""} onClick={() => setView("text")}>
+                  Reading order
+                </button>
+              </div>
+            </div>
+            {view === "text" ? <pre>{result.text}</pre> : <ParsedView result={result.parsed} />}
           </section>
 
           {debug && result.rendered.length > 0 && (
