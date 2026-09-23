@@ -34,6 +34,25 @@ Acme Inc. | 2020 - 2021
     expect(result.confidence["skills.0.items"]).toBeLessThan(CONFIDENCE_REVIEW_THRESHOLD);
   });
 
+  it("keeps unknown and unparsed sections as leftover text", () => {
+    const result = parseText(`Jane Doe
+
+EXPERIENCE
+Engineer
+Acme Inc. | 2020 - 2021
+
+MY TOOLBOX
+Go, Python
+
+VOLUNTEER
+Code mentor at a local school`);
+
+    expect(result.leftover).toEqual([
+      { heading: "MY TOOLBOX", lines: ["Go, Python"] },
+      { heading: "VOLUNTEER", lines: ["Code mentor at a local school"] },
+    ]);
+  });
+
   it("finds job boundaries on the text path without whitespace between them", () => {
     // No blank lines anywhere: gap-based splitting sees one entry, and the
     // heading-after-bullet fallback has to find the second job.

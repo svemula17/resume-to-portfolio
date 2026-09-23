@@ -12,6 +12,7 @@ import type { Line } from "../layout";
 import {
   ResumeSchema,
   type ConfidenceMap,
+  type LeftoverSection,
   type ParseResult,
   type Resume,
 } from "../schema/resume";
@@ -77,6 +78,16 @@ function summaryOf(sections: Section[]): string | undefined {
     .replace(/\s+/g, " ");
 }
 
+/** Section kinds a field parser consumes. Everything else is leftover. */
+const PARSED_KINDS = new Set<string>([
+  "summary",
+  "experience",
+  "education",
+  "skills",
+  "projects",
+  "certifications",
+]);
+
 /** Parse lines that are already in reading order. */
 export function parseLines(rawLines: Line[]): ParseResult {
   const lines = mergeWrappedLines(rawLines);
@@ -141,7 +152,19 @@ export function parseLines(rawLines: Line[]): ParseResult {
 
   if (!basics.name) confidence["basics.name"] = 0;
 
-  return { data, confidence };
+  // Every headed section no field parser claimed. Sections with a known kind
+  // but no parser yet (awards, publications, volunteer, languages, interests,
+  // references) count too — to the user they are equally "text the form did
+  // not pick up".
+  const leftover: LeftoverSection[] = sections
+    .filter((section) => section.heading !== null && !PARSED_KINDS.has(section.kind))
+    .filter((section) => section.lines.some((line) => line.text.trim() !== ""))
+    .map((section) => ({
+      heading: section.heading ?? "",
+      lines: section.lines.map((line) => line.text.trim()).filter(Boolean),
+    }));
+
+  return { data, confidence, leftover };
 }
 
 /** Parse raw text — the DOCX path, or pasted text. */

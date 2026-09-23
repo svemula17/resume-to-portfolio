@@ -104,10 +104,24 @@ export type ConfidenceMap = Record<string, number>;
 /** Below this, a field is visually flagged for review. */
 export const CONFIDENCE_REVIEW_THRESHOLD = 0.6;
 
+/**
+ * Text the parser recognised as a section but could not map to a field.
+ *
+ * A project list under "AI SECURITY — BUILT & PUBLISHED", a "Volunteer" block,
+ * an all-caps line the heading table has never seen. Dropping it would make
+ * the parser look cleaner and the review form slower: the user needs this
+ * text on screen to copy from, not in the original PDF in another window.
+ */
+export interface LeftoverSection {
+  heading: string;
+  lines: string[];
+}
+
 /** What a parser hands back: the data plus how much it trusts each field. */
 export interface ParseResult {
   data: Resume;
   confidence: ConfidenceMap;
+  leftover: LeftoverSection[];
 }
 
 /** An empty but schema-valid resume, used as the starting point for the form. */
