@@ -78,6 +78,9 @@ export function parseBlockAs<T extends ImportTarget>(
     for (const line of initial) {
       if (line.text.trim() === "") continue;
       for (const entry of parseCertificationLine(line.text, count)) {
+        // A separator line or a lone glyph parses to a certification with
+        // no name, which would import as an empty card with a Missing stop.
+        if (!entry.value.name) continue;
         out.push({ value: entry.value as ItemOf<T>, confidence: entry.confidence });
         count += 1;
       }

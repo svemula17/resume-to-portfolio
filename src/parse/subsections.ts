@@ -22,6 +22,16 @@ import { isBulletLine } from "./text";
  */
 const ENTRY_GAP_RATIO = 1.4;
 
+/**
+ * The most leading a paragraph ever has, as a multiple of glyph height.
+ * When every gap in a section exceeds it, the median is a paragraph
+ * break, not a line step, and comparing gaps to the median would find no
+ * boundaries in a section that is nothing but boundaries — one-line
+ * entries separated by blank lines, the shape of a pasted project list.
+ * Capping the "typical" gap at this keeps such a section splittable.
+ */
+const MAX_LEADING_RATIO = 1.6;
+
 function median(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -48,11 +58,14 @@ export function splitIntoEntries(lines: Line[]): Line[][] {
     gaps.push(lines[i]!.y - lines[i - 1]!.y);
   }
 
-  const typical = median(gaps);
-  // A section with no variation at all — common on the DOCX path, where
-  // leading is synthetic and uniform — has no boundaries to find.
-  if (typical <= 0) return [lines];
+  const medianGap = median(gaps);
+  if (medianGap <= 0) return [lines];
 
+  // A section with no variation at all — common on the DOCX path, where
+  // leading is synthetic and uniform — has no boundaries to find, unless
+  // that uniform gap is itself too big to be leading.
+  const lineHeight = median(lines.map((line) => line.height));
+  const typical = Math.min(medianGap, lineHeight * MAX_LEADING_RATIO);
   const threshold = typical * ENTRY_GAP_RATIO;
   const entries: Line[][] = [];
   let current: Line[] = [lines[0]!];

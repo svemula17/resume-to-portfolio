@@ -24,6 +24,15 @@ const ENDS_SENTENCE = /[.!?;:]["')\]]?\s*$/;
 const TITLE_MAX_CHARS = 48;
 
 /**
+ * A wrapped line sits one line of leading below its bullet. Leading runs
+ * 1.2-1.5× the glyph height in body text, so a gap past 1.6× is a blank
+ * line or an entry break — and text on the far side of that is never a
+ * continuation, whatever its punctuation says. On the text path a blank
+ * line is exactly a double step, so this catches it there too.
+ */
+const MAX_CONTINUATION_GAP_RATIO = 1.6;
+
+/**
  * Whether `line` continues `previous`.
  *
  * Geometry answers only when it actually says something. A line outdented
@@ -39,9 +48,16 @@ const TITLE_MAX_CHARS = 48;
  * case where a wrong merge does the most damage — swallowing a whole job
  * heading into the previous job's last bullet.
  */
-function continues(previous: Line, line: Line, next: Line | undefined, hasGeometry: boolean): boolean {
+function continues(
+  previous: Line,
+  before: Line,
+  line: Line,
+  next: Line | undefined,
+  hasGeometry: boolean,
+): boolean {
   if (isBulletLine(line.text)) return false;
   if (DATE_RANGE.test(line.text)) return false;
+  if (line.y - before.y > Math.max(line.height, before.height) * MAX_CONTINUATION_GAP_RATIO) return false;
 
   if (hasGeometry) {
     const indent = line.x - previous.x;
@@ -74,7 +90,10 @@ export function mergeWrappedLines(lines: Line[]): Line[] {
   let openBullet: Line | null = null;
 
   lines.forEach((line, index) => {
-    if (openBullet !== null && continues(openBullet, line, lines[index + 1], hasGeometry)) {
+    if (
+      openBullet !== null &&
+      continues(openBullet, lines[index - 1]!, line, lines[index + 1], hasGeometry)
+    ) {
       const folded: Line = {
         ...openBullet,
         items: [...openBullet.items, ...line.items],

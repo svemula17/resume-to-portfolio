@@ -273,4 +273,26 @@ describe("parseBlockAs skills heading", () => {
     expect(entries.map((entry) => entry.value.category)).toEqual(["Languages", "Tools"]);
   });
 });
+
+describe("parseBlockAs after the audit", () => {
+  it("splits blank-line-separated one-line paragraphs into entries", () => {
+    // Uniform double gaps: the median is a paragraph break, not leading.
+    const entries = parseBlockAs("projects", "Ledger\n\nVigil\n\nSpidey");
+    expect(entries.map((entry) => entry.value.name)).toEqual(["Ledger", "Vigil", "Spidey"]);
+  });
+
+  it("does not fold across a blank line after an unpunctuated bullet", () => {
+    const entries = parseBlockAs(
+      "projects",
+      "Vigil\n- Runtime guard for tool calls\n\nA Much Longer Project Name That Is Not A Title By Length\n- Scanner",
+    );
+    expect(entries).toHaveLength(2);
+    expect(entries[1]!.value.name).toBe("A Much Longer Project Name That Is Not A Title By Length");
+  });
+
+  it("skips separator lines when importing certifications", () => {
+    const entries = parseBlockAs("certifications", "OSCP\n---\nCISSP, ISC2, 2021");
+    expect(entries.map((entry) => entry.value.name)).toEqual(["OSCP", "CISSP"]);
+  });
+});
 });
