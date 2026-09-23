@@ -45,17 +45,33 @@ export { linesFromText } from "./from-text";
  * check is cheap: if the section holds more date ranges than the splitter
  * found entries, it missed boundaries, and the fallback signal — a heading
  * line that directly follows a bullet — is tried instead.
+ *
+ * `loose` applies the heading-after-bullet split whenever gap splitting
+ * found a single entry and that signal finds more, date ranges or not. Only
+ * the review form's re-parse of a pasted block asks for it: a block the user
+ * hand-picked is far more likely to be several entries than one, and the
+ * result is on screen to be judged. The main parse path never passes it, so
+ * every fixture is byte-for-byte unaffected.
  */
-function entriesOf(lines: Line[]): Line[][] {
+export function entriesOf(lines: Line[], options: { loose?: boolean } = {}): Line[][] {
   const entries = splitIntoEntries(lines);
   const dateRanges = lines.filter((line) => DATE_RANGE.test(line.text)).length;
+
+  const afterBullets = () =>
+    splitWhere(
+      lines,
+      (line, index) => index > 0 && !isBulletLine(line.text) && isBulletLine(lines[index - 1]!.text),
+    );
+
+  if (options.loose && entries.length === 1) {
+    const split = afterBullets();
+    if (split.length > 1) return split;
+  }
+
   if (dateRanges <= 1 || entries.length >= dateRanges) return entries;
 
-  const afterBullets = splitWhere(
-    lines,
-    (line, index) => index > 0 && !isBulletLine(line.text) && isBulletLine(lines[index - 1]!.text),
-  );
-  if (afterBullets.length >= dateRanges) return afterBullets;
+  const byBullets = afterBullets();
+  if (byBullets.length >= dateRanges) return byBullets;
 
   // Last resort: each date range starts an entry, taking the line above it
   // along if that line is a plain heading rather than a bullet.
@@ -156,12 +172,19 @@ export function parseLines(rawLines: Line[]): ParseResult {
   // but no parser yet (awards, publications, volunteer, languages, interests,
   // references) count too — to the user they are equally "text the form did
   // not pick up".
+  //
+  // Entries are kept apart by a single "" line. Without it the paragraph
+  // structure is lost — a three-project block flattens to three lines with
+  // uniform leading, and re-parsing it later can only ever find one entry.
   const leftover: LeftoverSection[] = sections
     .filter((section) => section.heading !== null && !PARSED_KINDS.has(section.kind))
     .filter((section) => section.lines.some((line) => line.text.trim() !== ""))
     .map((section) => ({
       heading: section.heading ?? "",
-      lines: section.lines.map((line) => line.text.trim()).filter(Boolean),
+      lines: entriesOf(section.lines)
+        .map((entry) => entry.map((line) => line.text.trim()).filter(Boolean))
+        .filter((entry) => entry.length > 0)
+        .flatMap((entry, index) => (index === 0 ? entry : ["", ...entry])),
     }));
 
   return { data, confidence, leftover };

@@ -114,6 +114,11 @@ export const CONFIDENCE_REVIEW_THRESHOLD = 0.6;
  */
 export interface LeftoverSection {
   heading: string;
+  /**
+   * Trimmed, non-empty lines, with a single "" between what the entry
+   * splitter took to be separate entries. Joined with "\n" it round-trips
+   * through the text parser into the same number of entries.
+   */
   lines: string[];
 }
 

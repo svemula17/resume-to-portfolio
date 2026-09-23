@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseText } from "./index";
+import { entriesOf, linesFromText, parseText } from "./index";
 import { CONFIDENCE_REVIEW_THRESHOLD } from "../schema/resume";
 
 describe("parseText", () => {
@@ -51,6 +51,39 @@ Code mentor at a local school`);
       { heading: "MY TOOLBOX", lines: ["Go, Python"] },
       { heading: "VOLUNTEER", lines: ["Code mentor at a local school"] },
     ]);
+  });
+
+  it("keeps paragraph breaks in leftover text so it re-parses into entries", () => {
+    const result = parseText(`Jane Doe
+jane@example.com
+Austin, TX
+
+SIDE WORK
+Ledger
+An append-only ledger.
+
+Vigil
+A prompt-injection monitor.
+
+Spidey
+A crawler.`);
+
+    const block = result.leftover[0]!;
+    expect(block.lines).toEqual([
+      "Ledger",
+      "An append-only ledger.",
+      "",
+      "Vigil",
+      "A prompt-injection monitor.",
+      "",
+      "Spidey",
+      "A crawler.",
+    ]);
+
+    // The round trip is the property that matters: a block the review form
+    // hands back to the parser must split the same way it did the first time.
+    const reparsed = entriesOf(linesFromText(block.lines.join("\n")));
+    expect(reparsed).toHaveLength(3);
   });
 
   it("finds job boundaries on the text path without whitespace between them", () => {
