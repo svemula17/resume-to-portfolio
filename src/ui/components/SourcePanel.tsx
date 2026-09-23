@@ -47,7 +47,15 @@ function BlockCard({ block }: { block: LeftoverBlock }) {
           {block.heading || "Block"} · {block.status === "used" ? "added" : "dismissed"}
         </span>
         {block.status === "used" ? (
-          <button type="button" className="rf-btn rf-btn-quiet rf-btn-small" onClick={() => dispatch({ type: "UNDO" })}>
+          <button
+            type="button"
+            className="rf-btn rf-btn-quiet rf-btn-small"
+            onClick={() => {
+              dispatch({ type: "REVERT_IMPORT", blockId: block.id });
+              announce(`Reverted. ${block.heading || "Block"} is unplaced again.`);
+            }}
+            title="Remove the entries this block added and put the block back"
+          >
             Undo
           </button>
         ) : (

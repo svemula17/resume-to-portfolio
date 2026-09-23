@@ -156,6 +156,46 @@ describe("blocks and summary", () => {
   });
 });
 
+describe("REVERT_IMPORT", () => {
+  it("removes exactly the entries one import created and reopens the block", () => {
+    const before = { ...loaded(), blocks: [{ id: "b1" as const, heading: "SIDE", text: "Ledger\n\nVigil", status: "open" as const }] };
+    const imported = reviewReducer(before, {
+      type: "IMPORT_ENTRIES",
+      path: "projects",
+      entries: [
+        { value: { name: "Ledger", tech: [] }, confidence: {} },
+        { value: { name: "Vigil", tech: [] }, confidence: {} },
+      ],
+      blockId: "b1",
+    });
+    expect(imported.blocks[0]!.status).toBe("used");
+    expect(imported.blocks[0]!.importedIds).toEqual(imported.entryIds.projects);
+
+    // An unrelated edit in between must survive the revert.
+    const edited = reviewReducer(imported, { type: "SET_FIELD", key: "basics.name", value: "Jane R. Doe" });
+    const reverted = reviewReducer(edited, { type: "REVERT_IMPORT", blockId: "b1" });
+
+    expect(reverted.resume.projects).toEqual([]);
+    expect(reverted.entryIds.projects).toEqual([]);
+    expect(reverted.blocks[0]!.status).toBe("open");
+    expect(reverted.resume.basics.name).toBe("Jane R. Doe");
+    expect(() => assertLockstep(reverted)).not.toThrow();
+  });
+
+  it("skips entries the user already removed", () => {
+    const before = { ...loaded(), blocks: [{ id: "b1" as const, heading: "SIDE", text: "x", status: "open" as const }] };
+    const imported = reviewReducer(before, {
+      type: "IMPORT_ENTRIES",
+      path: "projects",
+      entries: [{ value: { name: "Ledger", tech: [] }, confidence: {} }],
+      blockId: "b1",
+    });
+    const removed = reviewReducer(imported, { type: "REMOVE_ENTRY", id: imported.entryIds.projects[0]! });
+    const reverted = reviewReducer(removed, { type: "REVERT_IMPORT", blockId: "b1" });
+    expect(reverted.blocks[0]!.status).toBe("open");
+  });
+});
+
 describe("SET_TEMPLATE and RESET", () => {
   it("choosing a template is not an edit", () => {
     const state = reviewReducer(loaded(), { type: "SET_TEMPLATE", templateId: "minimal" });

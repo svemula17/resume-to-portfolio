@@ -52,6 +52,8 @@ export interface LeftoverBlock {
   /** Lines joined with "\n"; "" lines are paragraph breaks. */
   text: string;
   status: "open" | "used" | "dismissed";
+  /** Entries an Add to ▾ on this block created, so the import can be reverted. */
+  importedIds?: EntryId[];
 }
 
 export interface Source {
@@ -94,6 +96,7 @@ export type Action =
   | { type: "REFLAG"; key: FieldKey }
   | ImportAction
   | { type: "APPEND_SUMMARY"; text: string; blockId?: BlockId }
+  | { type: "REVERT_IMPORT"; blockId: BlockId }
   | { type: "DISMISS_BLOCK"; blockId: BlockId }
   | { type: "RESTORE_BLOCK"; blockId: BlockId }
   | { type: "SET_TEMPLATE"; templateId: string | null };
@@ -165,9 +168,14 @@ function setBlockStatus(
   blocks: LeftoverBlock[],
   blockId: BlockId | undefined,
   status: LeftoverBlock["status"],
+  importedIds?: EntryId[],
 ): LeftoverBlock[] {
   if (!blockId) return blocks;
-  return blocks.map((block) => (block.id === blockId ? { ...block, status } : block));
+  return blocks.map((block) =>
+    block.id === blockId
+      ? { ...block, status, ...(importedIds !== undefined ? { importedIds } : {}) }
+      : block,
+  );
 }
 
 /** Splice a list and its ids together — the only way the two ever change. */
@@ -305,9 +313,27 @@ export function reviewReducer(state: ReviewState, action: Action): ReviewState {
     case "IMPORT_ENTRIES": {
       if (action.entries.length === 0) return state;
       const imported = importEntries(state, action.path, action.entries);
+      const importedIds = imported.entryIds[action.path].slice(state.entryIds[action.path].length);
       return {
         ...imported,
-        blocks: setBlockStatus(imported.blocks, action.blockId, "used"),
+        blocks: setBlockStatus(imported.blocks, action.blockId, "used", importedIds),
+        dirty: true,
+      };
+    }
+
+    case "REVERT_IMPORT": {
+      // The inverse of one import, not of whatever happened last. Entries
+      // the user has since removed are simply skipped; the block reopens
+      // either way.
+      const block = state.blocks.find((candidate) => candidate.id === action.blockId);
+      if (!block || block.status !== "used") return state;
+      let next = state;
+      for (const id of block.importedIds ?? []) {
+        next = reviewReducer(next, { type: "REMOVE_ENTRY", id });
+      }
+      return {
+        ...next,
+        blocks: setBlockStatus(next.blocks, action.blockId, "open", []),
         dirty: true,
       };
     }

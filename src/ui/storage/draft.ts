@@ -74,6 +74,7 @@ const LeftoverBlockSchema = z.object({
   heading: z.string(),
   text: z.string(),
   status: z.enum(["open", "used", "dismissed"]),
+  importedIds: z.array(EntryIdSchema).optional(),
 });
 
 const SourceSchema = z.object({
