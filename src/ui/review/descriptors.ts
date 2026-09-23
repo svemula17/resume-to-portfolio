@@ -154,7 +154,7 @@ const links: SectionDef<"basics.links"> = {
     url: { label: "URL", widget: "text" },
   } satisfies { readonly [F in keyof Link]-?: FieldDescriptor },
   empty: () => ({ url: "" }),
-  title: (l) => l.label || l.url || "New link",
+  title: (l) => [l.label, l.url].filter(Boolean).join(" · ") || "New link",
 };
 
 export const SECTIONS: { readonly [P in ListPath]: SectionDef<P> } = {

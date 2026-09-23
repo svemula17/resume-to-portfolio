@@ -166,7 +166,9 @@
   cursor: default;
 }
 
-.rf-btn-primary {
+/* Specificity matches `.rf button { color: inherit }` above, which would
+   otherwise paint dark text on the dark fill. */
+.rf .rf-btn-primary {
   background: var(--rf-accent);
   color: var(--rf-accent-text);
   border-color: var(--rf-accent);
@@ -715,7 +717,7 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
-.rf-toast .rf-btn {
+.rf .rf-toast .rf-btn {
   background: transparent;
   color: inherit;
   border-color: currentColor;

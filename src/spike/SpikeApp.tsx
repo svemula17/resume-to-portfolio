@@ -12,14 +12,14 @@ import {
   extractDocxText,
   extractTextItems,
   type Page,
-} from "./extract";
-import { renderPageImages, type RenderedPage } from "./extract/render";
-import { toPageReadingOrders, type PageReadingOrder } from "./layout";
-import { parseLines, parseText } from "./parse";
-import type { ParseResult } from "./schema/resume";
-import { DebugOverlay } from "./spike/DebugOverlay";
-import { ParsedView } from "./spike/ParsedView";
-import "./App.css";
+} from "../extract";
+import { renderPageImages, type RenderedPage } from "../extract/render";
+import { toPageReadingOrders, type PageReadingOrder } from "../layout";
+import { parseLines, parseText } from "../parse";
+import type { ParseResult } from "../schema/resume";
+import { DebugOverlay } from "./DebugOverlay";
+import { ParsedView } from "./ParsedView";
+import "./spike.css";
 
 interface Result {
   fileName: string;
@@ -38,7 +38,7 @@ function describeLayout(order: PageReadingOrder): string {
   );
 }
 
-export default function App() {
+export function SpikeApp() {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
