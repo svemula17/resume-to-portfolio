@@ -22,14 +22,16 @@ interface Boot {
   history: HistoryState;
   restoredAt: string | null;
   restoreFailed: boolean;
+  /** What was in storage, so autosave knows not to re-save it. */
+  raw: string | null;
 }
 
 function boot(storage: ReturnType<typeof getLocalStorage>): Boot {
   const raw = storage ? safeGet(storage, DRAFT_KEY) : null;
-  if (raw === null) return { history: initialHistory(initialState()), restoredAt: null, restoreFailed: false };
+  if (raw === null) return { history: initialHistory(initialState()), restoredAt: null, restoreFailed: false, raw };
   const draft = parseDraft(raw);
-  if (!draft) return { history: initialHistory(initialState()), restoredAt: null, restoreFailed: true };
-  return { history: initialHistory(draft.state), restoredAt: draft.savedAt, restoreFailed: false };
+  if (!draft) return { history: initialHistory(initialState()), restoredAt: null, restoreFailed: true, raw: null };
+  return { history: initialHistory(draft.state), restoredAt: draft.savedAt, restoreFailed: false, raw };
 }
 
 export default function App() {
@@ -41,19 +43,24 @@ function ReviewApp() {
   const storage = useMemo(() => getLocalStorage(), []);
   const [initial] = useState(() => boot(storage));
   const [history, dispatch] = useReducer(reviewHistoryReducer, initial.history);
-  const { status, flush } = useDraftPersistence(history.present, storage);
+  const { status, flush, resume } = useDraftPersistence(history.present, storage, initial.raw);
   const [pendingReplace, setPendingReplace] = useState<Parsed | null>(null);
   const [restoreFailed, setRestoreFailed] = useState(initial.restoreFailed);
+  // Held in state so loading a different file clears it; the form remounts
+  // on every load and would otherwise show the boot-time banner again.
+  const [restoredAt, setRestoredAt] = useState(initial.restoredAt);
   const [uploadingAnother, setUploadingAnother] = useState(false);
 
   const load = useCallback(
     (parsed: Parsed) => {
+      resume();
       dispatch({ type: "LOAD_PARSE", result: parsed.result, source: parsed.source });
       setPendingReplace(null);
       setUploadingAnother(false);
       setRestoreFailed(false);
+      setRestoredAt(null);
     },
-    [dispatch],
+    [dispatch, resume],
   );
 
   const onParsed = (parsed: Parsed) => {
@@ -64,13 +71,19 @@ function ReviewApp() {
   };
 
   const startOver = () => {
-    if (storage) clearDraft(storage);
+    // When another tab owns the draft, clearing storage would delete that
+    // tab's work; RESET alone stops this tab persisting, which is enough.
+    if (storage && status.kind !== "foreign") clearDraft(storage);
+    resume();
     dispatch({ type: "RESET" });
     setUploadingAnother(false);
+    setRestoredAt(null);
   };
 
   const state = history.present;
-  const sourceMissing = state.source !== null && state.source.text === "" && state.source.format !== "text";
+  // A reduced save dropped the text, whatever the format; pasted text is
+  // no more recoverable than a PDF's.
+  const sourceMissing = state.source !== null && state.source.text === "";
 
   if (state.source === null || uploadingAnother) {
     return (
@@ -109,7 +122,7 @@ function ReviewApp() {
       dispatch={dispatch}
       status={status}
       flush={flush}
-      restoredAt={initial.restoredAt}
+      restoredAt={restoredAt}
       sourceMissing={sourceMissing}
       onUploadAnother={() => setUploadingAnother(true)}
       onStartOver={startOver}

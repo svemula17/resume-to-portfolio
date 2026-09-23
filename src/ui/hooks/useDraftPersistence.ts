@@ -15,7 +15,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReviewState } from "../review/state";
-import { DRAFT_KEY, saveDraft } from "../storage/draft";
+import { DRAFT_KEY, saveDraft, serializeDraft } from "../storage/draft";
 import type { StorageLike } from "../storage/safeStorage";
 
 export type AutosaveStatus =
@@ -27,14 +27,46 @@ export type AutosaveStatus =
 
 const DEBOUNCE_MS = 400;
 
+/**
+ * The envelope minus its timestamp. Two states that differ only in when
+ * they were saved are the same draft, and comparing full envelopes would
+ * never skip a write.
+ */
+function fingerprint(state: ReviewState): string {
+  return serializeDraft(state, "");
+}
+
+/** Strip savedAt from a raw envelope so a boot-time draft can seed the fingerprint. */
+function fingerprintOfRaw(raw: string | null): string | null {
+  if (raw === null) return null;
+  try {
+    const parsed = JSON.parse(raw) as { savedAt?: unknown };
+    return JSON.stringify({ ...parsed, savedAt: "" });
+  } catch {
+    return null;
+  }
+}
+
 export function useDraftPersistence(
   present: ReviewState,
   storage: StorageLike | null,
-): { status: AutosaveStatus; flush: () => void } {
-  const [status, setStatus] = useState<AutosaveStatus>(
-    storage ? { kind: "saving" } : { kind: "off", reason: "unavailable" },
-  );
-  const lastWritten = useRef<string | null>(null);
+  /** The raw draft read at boot, so hydrating does not immediately re-save it. */
+  bootRaw: string | null = null,
+): { status: AutosaveStatus; flush: () => void; resume: () => void } {
+  const [status, setStatus] = useState<AutosaveStatus>(() => {
+    if (!storage) return { kind: "off", reason: "unavailable" };
+    if (bootRaw !== null) {
+      try {
+        const at = (JSON.parse(bootRaw) as { savedAt?: string }).savedAt;
+        if (typeof at === "string") return { kind: "saved", at };
+      } catch {
+        // Unparseable draft: boot() already reported it; fall through.
+      }
+    }
+    return { kind: "saving" };
+  });
+  const lastWritten = useRef<string | null>(bootRaw);
+  const lastFingerprint = useRef<string | null>(fingerprintOfRaw(bootRaw));
   const timer = useRef<number | null>(null);
   const foreign = useRef(false);
   const latest = useRef(present);
@@ -51,15 +83,30 @@ export function useDraftPersistence(
     // ever restore to the upload screen anyway.
     if (state.source === null) return;
 
+    // Skip an unchanged draft before touching storage. A boot-time hydrate
+    // re-saving itself is the case that matters: the write fires a storage
+    // event in every other tab, and each of them reads it as a foreign edit.
+    const next = fingerprint(state);
+    if (next === lastFingerprint.current) return;
+
     const result = saveDraft(storage, state, new Date().toISOString());
     if (result.ok) {
-      if (result.written === lastWritten.current) return;
       lastWritten.current = result.written;
+      lastFingerprint.current = result.reduced ? null : next;
       const at = new Date().toISOString();
       setStatus(result.reduced ? { kind: "reduced", at } : { kind: "saved", at });
     } else {
       setStatus({ kind: "off", reason: result.reason });
     }
+  }, [storage]);
+
+  // Leave the foreign pause: this tab is about to own the draft again,
+  // because the user loaded a new file or started over here.
+  const resume = useCallback(() => {
+    foreign.current = false;
+    lastWritten.current = null;
+    lastFingerprint.current = null;
+    setStatus(storage ? { kind: "saving" } : { kind: "off", reason: "unavailable" });
   }, [storage]);
 
   const flush = useCallback(() => {
@@ -104,5 +151,5 @@ export function useDraftPersistence(
     };
   }, [storage, flush]);
 
-  return { status, flush };
+  return { status, flush, resume };
 }

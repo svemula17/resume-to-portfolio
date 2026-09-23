@@ -151,7 +151,9 @@ export function SourcePanel({ blocks, sourceText, sourceMissing }: Props) {
       ))}
 
       <details className="rf-fulltext" open={blocks.length === 0}>
-        <summary>Full text{sourceMissing ? " — not saved (storage was full); upload the file again to see it" : ""}</summary>
+        <summary>
+          Full text{sourceMissing ? " — not saved (storage was full); load the file or paste the text again to see it" : ""}
+        </summary>
         {!sourceMissing && (
           <pre ref={preRef} onMouseUp={readSelection} onKeyUp={readSelection} tabIndex={0}>
             {sourceText}
