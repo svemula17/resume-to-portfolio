@@ -12,6 +12,7 @@ import {
   clamp01,
   EMAIL,
   INTL_LOCATION,
+  isAllCaps,
   PHONE,
   URL,
   US_LOCATION,
@@ -29,7 +30,9 @@ import {
  */
 export const NAME_FEATURES: Feature<string>[] = [
   feature("letters only", 3, (text) => /^[a-zA-Z\s.'-]+$/.test(text)),
-  feature("is all uppercase", 2, (text) => text === text.toUpperCase()),
+  // isAllCaps, not a toUpperCase comparison: "!!!" or "2019" equal their own
+  // uppercase and would otherwise score as a name on a page with no name.
+  feature("is all uppercase", 2, (text) => isAllCaps(text)),
   feature("two to four words", 2, (text) => {
     const words = text.trim().split(/\s+/);
     return words.length >= 2 && words.length <= 4;
