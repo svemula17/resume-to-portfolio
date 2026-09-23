@@ -122,9 +122,31 @@ export interface Section {
   lines: Line[];
 }
 
-/** Keyword lookup. Strong evidence: this is a known heading, verbatim. */
+/**
+ * Keyword lookup. Strong evidence: this is a known heading, verbatim.
+ *
+ * Falls back to a prefix match — "Publications & Community", "Skills and
+ * Tools", "Education & Training" — when the heading opens with a known
+ * alias followed by a joiner and a short remainder. Both conditions are
+ * load-bearing. The joiner is what stops "Experience with distributed
+ * systems" matching. The short, comma-free remainder is what stops
+ * "Languages: Go, Python, TypeScript" — a skills line — being read as a
+ * heading for a languages section, which on the first run swallowed every
+ * labelled skill group on the page. A colon is deliberately not a joiner
+ * for the same reason: after a colon comes content.
+ */
 export function matchHeadingKeyword(text: string): SectionKind | null {
-  return HEADINGS[normalizeHeading(text)] ?? null;
+  const normalized = normalizeHeading(text);
+  const exact = HEADINGS[normalized];
+  if (exact) return exact;
+
+  const joiner = /^(.+?)\s*(?:&|and|\/|-{1,2}|—|–)\s+([^,:]{1,25})$/.exec(normalized);
+  if (joiner) {
+    const prefix = HEADINGS[joiner[1]!.trim()];
+    if (prefix) return prefix;
+  }
+
+  return null;
 }
 
 /**

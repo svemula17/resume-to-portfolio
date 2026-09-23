@@ -19,8 +19,19 @@ const DEGREE =
 const SCHOOL_WORD =
   /\b(university|college|institute|school|academy|polytechnic|seminary|conservatory)\b/i;
 
-/** "BS in Computer Science" / "Master of Science, Cybersecurity". */
-const FIELD_OF_STUDY = /\b(?:in|of|,)\s+([A-Z][A-Za-z&\s]{2,40})$/;
+/**
+ * "BS in Computer Science" / "Master of Science, Cybersecurity" /
+ * "Bachelor of Engineering".
+ *
+ * Tried in order, because "Master of Science in Cybersecurity" matches all
+ * three and only the first gives the right answer. "of" is last: it is the
+ * weakest signal, since "Master of Science" names the degree, not the field.
+ */
+const FIELD_OF_STUDY = [
+  /\bin\s+([A-Z][A-Za-z&\s]{2,40})$/,
+  /,\s+([A-Z][A-Za-z&\s]{2,40})$/,
+  /\bof\s+([A-Z][A-Za-z&\s]{2,40})$/,
+];
 
 const DEGREE_FEATURES: Feature<string>[] = [
   feature("contains a degree token", 5, (text) => DEGREE.test(text)),
@@ -83,8 +94,13 @@ export function parseEducationEntry(lines: Line[], index: number): ParsedEntry<E
 
   let field: string | undefined;
   if (degree?.value) {
-    const match = FIELD_OF_STUDY.exec(degree.value);
-    if (match) field = match[1]!.trim();
+    for (const pattern of FIELD_OF_STUDY) {
+      const match = pattern.exec(degree.value);
+      if (match) {
+        field = match[1]!.trim();
+        break;
+      }
+    }
   }
 
   if (degree) confidence[`${prefix}.degree`] = degree.confidence;

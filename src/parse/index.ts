@@ -113,12 +113,14 @@ export function parseLines(rawLines: Line[]): ParseResult {
     return parsed.value;
   });
 
+  let certificationCount = 0;
   const certifications = linesOfKind(sections, "certifications")
     .filter((line) => line.text.trim() !== "")
-    .map((line, index) => {
-      const parsed = parseCertificationLine(line.text, index);
-      Object.assign(confidence, parsed.confidence);
-      return parsed.value;
+    .flatMap((line) => {
+      const parsed = parseCertificationLine(line.text, certificationCount);
+      certificationCount += parsed.length;
+      for (const entry of parsed) Object.assign(confidence, entry.confidence);
+      return parsed.map((entry) => entry.value);
     });
 
   const candidate = {

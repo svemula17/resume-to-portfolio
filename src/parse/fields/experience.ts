@@ -26,21 +26,51 @@ const SENIORITY = /\b(senior|staff|principal|junior|lead|chief|head|vp|vice pres
 const COMPANY_SUFFIX =
   /\b(inc\.?|llc|ltd\.?|corp\.?|corporation|gmbh|plc|co\.?|company|technologies|solutions|systems|labs|group|holdings|partners|consulting|university|institute)\b/i;
 
-const ROLE_FEATURES: Feature<string>[] = [
-  feature("contains a role word", 4, (text) => ROLE_WORDS.test(text)),
-  feature("contains a seniority word", 2, (text) => SENIORITY.test(text)),
-  feature("contains a company suffix", -4, (text) => COMPANY_SUFFIX.test(text)),
-  feature("contains a location", -2, (text) => US_LOCATION.test(text)),
-  feature("short", 1, (text) => text.length <= 50),
-  feature("very long", -3, (text) => text.length > 70),
+/**
+ * A heading fragment, with where it came from. Position turns out to be as
+ * informative as content: the company is almost always on the line that
+ * carries the dates, and the role is almost always the first thing written.
+ */
+interface Candidate {
+  text: string;
+  lineIndex: number;
+  partIndex: number;
+  onDateLine: boolean;
+}
+
+const REMOTE = /\b(remote|hybrid|on-?site|wfh)\b/i;
+
+function isOnlyLocation(text: string): boolean {
+  const stripped = text.replace(/[()]/g, "").trim();
+  const match = US_LOCATION.exec(stripped) ?? INTL_LOCATION.exec(stripped);
+  if (match && match[0].length >= stripped.length - 2) return true;
+  return REMOTE.test(stripped) && stripped.length <= 30;
+}
+
+const ROLE_FEATURES: Feature<Candidate>[] = [
+  feature("contains a role word", 4, ({ text }) => ROLE_WORDS.test(text)),
+  feature("contains a seniority word", 2, ({ text }) => SENIORITY.test(text)),
+  feature("is the first fragment", 1, ({ lineIndex, partIndex }) => lineIndex === 0 && partIndex === 0),
+  feature("contains a company suffix", -4, ({ text }) => COMPANY_SUFFIX.test(text)),
+  feature("is only a location", -6, ({ text }) => isOnlyLocation(text)),
+  feature("contains a location", -2, ({ text }) => US_LOCATION.test(text)),
+  feature("short", 1, ({ text }) => text.length <= 50),
+  feature("very long", -3, ({ text }) => text.length > 70),
 ];
 
-const COMPANY_FEATURES: Feature<string>[] = [
-  feature("contains a company suffix", 4, (text) => COMPANY_SUFFIX.test(text)),
-  feature("contains a location", 2, (text) => US_LOCATION.test(text) || INTL_LOCATION.test(text)),
-  feature("contains a role word", -3, (text) => ROLE_WORDS.test(text)),
-  feature("title case", 1, (text) => /^[A-Z]/.test(text)),
-  feature("very long", -3, (text) => text.length > 70),
+const COMPANY_FEATURES: Feature<Candidate>[] = [
+  feature("contains a company suffix", 4, ({ text }) => COMPANY_SUFFIX.test(text)),
+  // The strongest structural signal there is: templates put the dates on the
+  // company line far more often than on the role line.
+  feature("shares a line with the dates", 3, ({ onDateLine }) => onDateLine),
+  feature("first fragment on its line", 1, ({ partIndex }) => partIndex === 0),
+  feature("title case", 1, ({ text }) => /^[A-Z]/.test(text)),
+  // "Mumbai, India" on its own is where the company is, not what it is. This
+  // was the first real-resume failure: a +2 for "contains a location" let a
+  // bare location outscore the company beside it.
+  feature("is only a location", -6, ({ text }) => isOnlyLocation(text)),
+  feature("contains a role word", -3, ({ text }) => ROLE_WORDS.test(text)),
+  feature("very long", -3, ({ text }) => text.length > 70),
 ];
 
 /** Split "Datadog -- United States (Remote)" into company and location. */
@@ -79,24 +109,22 @@ export function parseExperienceEntry(lines: Line[], index: number): ParsedEntry<
   // Heading text with the date range removed, then split on delimiters, so a
   // line like "Datadog -- United States | June 2025 - Present" yields two
   // clean candidates rather than one soup.
-  const candidates: string[] = [];
+  const candidates: Candidate[] = [];
   headingLines.forEach((line, lineIndex) => {
-    const text =
-      range && range.lineIndex === lineIndex
-        ? stripDateRange(line.text, range.matchedText)
-        : line.text;
-    for (const part of text.split(HEADING_DELIMITER)) {
+    const onDateLine = range !== null && range.lineIndex === lineIndex;
+    const text = onDateLine ? stripDateRange(line.text, range.matchedText) : line.text;
+    text.split(HEADING_DELIMITER).forEach((part, partIndex) => {
       const trimmed = part.trim();
-      if (trimmed !== "") candidates.push(trimmed);
-    }
+      if (trimmed !== "") candidates.push({ text: trimmed, lineIndex, partIndex, onDateLine });
+    });
   });
 
   const role = pickBest(candidates, ROLE_FEATURES);
-  const companyPool = candidates.filter((text) => text !== role?.value);
+  const companyPool = candidates.filter((candidate) => candidate !== role?.value);
   const company = pickBest(companyPool, COMPANY_FEATURES);
 
   let location: string | undefined;
-  let companyText = company?.value;
+  let companyText = company?.value.text;
   if (companyText) {
     const extracted = extractLocation(companyText);
     location = extracted.location;
@@ -105,13 +133,12 @@ export function parseExperienceEntry(lines: Line[], index: number): ParsedEntry<
     if (extracted.rest !== "") companyText = extracted.rest;
   }
   if (!location) {
-    for (const candidate of candidates) {
-      const match = US_LOCATION.exec(candidate) ?? INTL_LOCATION.exec(candidate);
-      if (match) {
-        location = match[0];
-        break;
-      }
-    }
+    // A fragment that is nothing but a location, or "United States (Remote)",
+    // which no city-pattern matches but is unmistakably a place.
+    const bare = candidates.find(
+      (candidate) => candidate !== role?.value && candidate !== company?.value && isOnlyLocation(candidate.text),
+    );
+    if (bare) location = bare.text;
   }
 
   if (role) confidence[`${prefix}.role`] = role.confidence;
@@ -122,7 +149,7 @@ export function parseExperienceEntry(lines: Line[], index: number): ParsedEntry<
   return {
     value: {
       company: companyText,
-      role: role?.value,
+      role: role?.value.text,
       startDate: range?.startDate,
       endDate: range?.endDate,
       current: range?.current,
