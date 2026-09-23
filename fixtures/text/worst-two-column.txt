@@ -1,0 +1,42 @@
+alex.rivera.dev@example.com | 415-555-0142
+San Francisco, CA
+github.com/arivera | linkedin.com/in/alex-rivera-sec
+
+PROFESSIONAL EXPERIENCE
+Security Engineer
+Mar 2022 - Present
+- Built the detection pipeline that catches credential stuffing in under a minute.
+- Cut false positives by half by rewriting the scoring model.
+LANGUAGES
+Python, Go, Rust
+TOOLS
+Splunk, Terraform, Kubernetes
+Platform Engineer
+Initech
+Jun 2019 - Feb 2022
+- Ran the migration from VMs to Kubernetes across forty services.
+- On-call lead for the platform tier.
+
+AI SECURITY - BUILT & PUBLISHED
+Vigil
+A prompt-injection monitor for LLM agents. Flags indirect injections in tool output.
+
+Sandbox Harness
+Runs untrusted agent tool calls in a sealed container with a syscall allowlist.
+
+Red Team Corpus
+Four hundred adversarial prompts, tagged by technique, with a scoring harness.
+
+VIGIL
+Open-source, 900 stars. Written in Go.
+
+SKILLS
+Python, Go, Rust, Splunk, Terraform, Kubernetes, threat modeling, incident response, detection engineering, OWASP LLM Top 10
+
+CERTIFICATIONS
+OSCP | GIAC GCIH
+AWS Certified Security - Specialty, Amazon, 2023
+
+EDUCATION
+BS Computer Science
+2015 - 2019

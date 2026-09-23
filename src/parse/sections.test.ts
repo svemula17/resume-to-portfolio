@@ -57,6 +57,11 @@ describe("findHeadings", () => {
     ]);
   });
 
+  it("does not read a pipe-delimited caps line as a heading", () => {
+    const hits = findHeadings(linesFromText("a\nb\nc\nCERTIFICATIONS\nOSCP | GIAC GCIH"));
+    expect(hits.map((hit) => hit.text)).toEqual(["CERTIFICATIONS"]);
+  });
+
   it("ignores a long capitalised line that is really a sentence", () => {
     const hits = findHeadings(
       linesFromText("a\nb\nc\nBUILT AND MAINTAINED THE BILLING PIPELINE END TO END"),

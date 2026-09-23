@@ -165,8 +165,9 @@ function isStructuralHeading(line: Line, index: number): boolean {
   if (line.items.length !== 1) return false;
   if (line.text.length > MAX_STRUCTURAL_HEADING_CHARS) return false;
   if (!isAllCaps(line.text)) return false;
-  // A heading is a label, not a sentence or a date.
-  if (/[.,;]/.test(line.text)) return false;
+  // A heading is a label, not a sentence, a date, or a delimited list.
+  // "OSCP | GIAC GCIH" is all-caps and short, and it is two certifications.
+  if (/[.,;|•·]/.test(line.text)) return false;
   if (!/[A-Za-z]/.test(line.text)) return false;
   return true;
 }

@@ -1,0 +1,67 @@
+{
+  "basics": {
+    "name": "Unknown",
+    "email": "alex.rivera.dev@example.com",
+    "phone": "415-555-0142",
+    "location": "San Francisco, CA",
+    "links": [
+      {
+        "label": "GitHub",
+        "url": "github.com/arivera"
+      },
+      {
+        "label": "LinkedIn",
+        "url": "linkedin.com/in/alex-rivera-sec"
+      }
+    ]
+  },
+  "experience": [
+    {
+      "role": "Security Engineer",
+      "startDate": "Mar 2022",
+      "current": true,
+      "bullets": [
+        "Built the detection pipeline that catches credential stuffing in under a minute.",
+        "Cut false positives by half by rewriting the scoring model."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "BS Computer Science",
+      "startDate": "2015",
+      "endDate": "2019"
+    }
+  ],
+  "projects": [],
+  "skills": [
+    {
+      "items": [
+        "Python",
+        "Go",
+        "Rust",
+        "Splunk",
+        "Terraform",
+        "Kubernetes",
+        "threat modeling",
+        "incident response",
+        "detection engineering",
+        "OWASP LLM Top 10"
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "OSCP"
+    },
+    {
+      "name": "GIAC GCIH",
+      "issuer": "GIAC"
+    },
+    {
+      "name": "AWS Certified Security - Specialty",
+      "issuer": "Amazon",
+      "date": "2023"
+    }
+  ]
+}
