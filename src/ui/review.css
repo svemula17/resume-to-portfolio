@@ -1,0 +1,722 @@
+/*
+ * Review form. Product styling, as opposed to the spike's.
+ *
+ * Three states carry the whole meaning of the form and get the only colour
+ * on the page: amber for a flag (the parser was unsure), a dashed outline
+ * for a Missing core field (the parser found nothing), red for a validation
+ * issue (the schema rejects it). Everything else is grey on white so that
+ * those three are what the eye lands on.
+ */
+
+:root {
+  --rf-bg: #ffffff;
+  --rf-panel: #f9fafb;
+  --rf-border: #e5e7eb;
+  --rf-border-strong: #d1d5db;
+  --rf-text: #111827;
+  --rf-muted: #6b7280;
+  --rf-accent: #111827;
+  --rf-accent-text: #ffffff;
+  --rf-flag: #b45309;
+  --rf-flag-bg: #fef3c7;
+  --rf-flag-border: #f59e0b;
+  --rf-missing: #6b7280;
+  --rf-issue: #b91c1c;
+  --rf-issue-bg: #fef2f2;
+  --rf-ok: #047857;
+  --rf-focus: #2563eb;
+  --rf-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --rf-bg: #0f1115;
+    --rf-panel: #161a21;
+    --rf-border: #262b35;
+    --rf-border-strong: #343b47;
+    --rf-text: #e5e7eb;
+    --rf-muted: #9ca3af;
+    --rf-accent: #e5e7eb;
+    --rf-accent-text: #0f1115;
+    --rf-flag: #fbbf24;
+    --rf-flag-bg: #3a2a08;
+    --rf-flag-border: #d97706;
+    --rf-missing: #9ca3af;
+    --rf-issue: #f87171;
+    --rf-issue-bg: #3b0f0f;
+    --rf-ok: #34d399;
+    --rf-focus: #60a5fa;
+    --rf-shadow: none;
+  }
+}
+
+.rf {
+  color: var(--rf-text);
+  background: var(--rf-bg);
+  min-height: 100vh;
+  font-size: 0.9rem;
+}
+
+.rf *,
+.rf *::before,
+.rf *::after {
+  box-sizing: border-box;
+}
+
+.rf button,
+.rf input,
+.rf textarea,
+.rf select {
+  font: inherit;
+  color: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Header ---------- */
+
+.rf-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--rf-bg);
+  border-bottom: 1px solid var(--rf-border);
+}
+
+.rf-header h1 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rf-header .rf-file {
+  color: var(--rf-muted);
+  font-weight: 400;
+}
+
+.rf-walk {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rf-walk .rf-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.rf-count-flag {
+  color: var(--rf-flag);
+  font-weight: 600;
+}
+
+.rf-count-issue {
+  color: var(--rf-issue);
+  font-weight: 600;
+}
+
+.rf-hint {
+  color: var(--rf-muted);
+  font-size: 0.78rem;
+}
+
+.rf-status {
+  color: var(--rf-muted);
+  font-size: 0.78rem;
+  margin-left: auto;
+}
+
+.rf-status-off,
+.rf-status-foreign {
+  color: var(--rf-flag);
+}
+
+/* ---------- Buttons ---------- */
+
+.rf-btn {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--rf-border-strong);
+  border-radius: 6px;
+  background: var(--rf-bg);
+  cursor: pointer;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.rf-btn:hover:not(:disabled) {
+  border-color: var(--rf-text);
+}
+
+.rf-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.rf-btn-primary {
+  background: var(--rf-accent);
+  color: var(--rf-accent-text);
+  border-color: var(--rf-accent);
+}
+
+.rf-btn-quiet {
+  border-color: transparent;
+  color: var(--rf-muted);
+  padding: 0.2rem 0.4rem;
+}
+
+.rf-btn-quiet:hover:not(:disabled) {
+  color: var(--rf-text);
+  border-color: var(--rf-border);
+}
+
+.rf-btn-small {
+  font-size: 0.78rem;
+  padding: 0.15rem 0.45rem;
+}
+
+/* ---------- Layout ---------- */
+
+.rf-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem 4rem;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.rf-main {
+  min-width: 0;
+}
+
+.rf-aside {
+  position: sticky;
+  top: 4rem;
+  align-self: start;
+  max-height: calc(100vh - 5rem);
+  overflow: auto;
+}
+
+@media (max-width: 1100px) {
+  .rf-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rf-aside {
+    position: static;
+    max-height: none;
+  }
+}
+
+/* ---------- Banners ---------- */
+
+.rf-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 8px;
+  background: var(--rf-panel);
+}
+
+.rf-banner-warn {
+  border-color: var(--rf-flag-border);
+  background: var(--rf-flag-bg);
+}
+
+.rf-banner-issue {
+  border-color: var(--rf-issue);
+  background: var(--rf-issue-bg);
+}
+
+/* ---------- Sections ---------- */
+
+.rf-section {
+  margin-bottom: 1.75rem;
+}
+
+.rf-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.rf-section-head h2 {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rf-muted);
+}
+
+.rf-section-head .rf-section-count {
+  color: var(--rf-muted);
+  font-size: 0.78rem;
+}
+
+.rf-section-head .rf-section-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.rf-basics {
+  padding: 1rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 10px;
+  background: var(--rf-bg);
+  box-shadow: var(--rf-shadow);
+}
+
+/* ---------- Cards ---------- */
+
+.rf-card {
+  border: 1px solid var(--rf-border);
+  border-radius: 10px;
+  background: var(--rf-bg);
+  box-shadow: var(--rf-shadow);
+  margin-bottom: 0.6rem;
+}
+
+.rf-card-flagged {
+  border-color: var(--rf-flag-border);
+}
+
+.rf-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem 0.5rem 0.4rem;
+  border-radius: 10px;
+}
+
+.rf-card-head:focus-visible {
+  outline: 2px solid var(--rf-focus);
+  outline-offset: -2px;
+}
+
+.rf-card-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.rf-card-badge {
+  font-size: 0.72rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--rf-flag-bg);
+  color: var(--rf-flag);
+  font-variant-numeric: tabular-nums;
+}
+
+.rf-card-actions {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.rf-card-body {
+  padding: 0.25rem 0.9rem 0.9rem;
+  border-top: 1px solid var(--rf-border);
+}
+
+.rf-disclosure {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  background: none;
+  color: var(--rf-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rf-disclosure::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 120ms;
+}
+
+.rf-disclosure[aria-expanded="true"]::before {
+  transform: rotate(45deg);
+}
+
+/* ---------- Fields ---------- */
+
+.rf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 0.9rem;
+}
+
+.rf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.rf-field-wide {
+  grid-column: 1 / -1;
+}
+
+.rf-field-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--rf-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rf-field-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: end;
+  padding-bottom: 0.35rem;
+}
+
+.rf-field-check .rf-field-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.85rem;
+  color: var(--rf-text);
+}
+
+.rf-input,
+.rf-textarea {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--rf-border-strong);
+  border-radius: 6px;
+  background: var(--rf-bg);
+  line-height: 1.4;
+}
+
+.rf-textarea {
+  resize: vertical;
+  min-height: 3.2rem;
+  font-family: inherit;
+}
+
+.rf-input:focus-visible,
+.rf-textarea:focus-visible {
+  outline: 2px solid var(--rf-focus);
+  outline-offset: 0;
+  border-color: var(--rf-focus);
+}
+
+.rf-input:disabled {
+  background: var(--rf-panel);
+  color: var(--rf-muted);
+}
+
+/* The three states. */
+.rf-field-flagged .rf-input,
+.rf-field-flagged .rf-textarea {
+  border-color: var(--rf-flag-border);
+  background: var(--rf-flag-bg);
+}
+
+.rf-field-missing .rf-input,
+.rf-field-missing .rf-textarea {
+  border-style: dashed;
+  border-color: var(--rf-missing);
+}
+
+.rf-field-issue .rf-input,
+.rf-field-issue .rf-textarea {
+  border-color: var(--rf-issue);
+  background: var(--rf-issue-bg);
+}
+
+.rf-field-issue-text {
+  color: var(--rf-issue);
+  font-size: 0.78rem;
+}
+
+/* ---------- Flag chips ---------- */
+
+.rf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.rf-chip-flag {
+  color: var(--rf-flag);
+  background: var(--rf-flag-bg);
+  border-color: var(--rf-flag-border);
+}
+
+.rf-chip-missing {
+  color: var(--rf-missing);
+  border-style: dashed;
+  border-color: var(--rf-missing);
+}
+
+.rf-chip-reviewed {
+  color: var(--rf-ok);
+}
+
+.rf-chip-edited {
+  color: var(--rf-muted);
+  cursor: default;
+}
+
+.rf-chip:focus-visible {
+  outline: 2px solid var(--rf-focus);
+}
+
+/* ---------- Source panel ---------- */
+
+.rf-source {
+  padding: 1rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 10px;
+  background: var(--rf-panel);
+}
+
+.rf-source h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rf-muted);
+}
+
+.rf-block {
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 8px;
+  background: var(--rf-bg);
+}
+
+.rf-block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.rf-block-text {
+  width: 100%;
+  min-height: 4rem;
+  max-height: 14rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 6px;
+  background: var(--rf-panel);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.rf-block-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.rf-block-stub {
+  color: var(--rf-muted);
+  font-size: 0.8rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rf-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.rf-menu-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 10rem;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid var(--rf-border-strong);
+  border-radius: 8px;
+  background: var(--rf-bg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.rf-menu-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+}
+
+.rf-menu-list button:hover,
+.rf-menu-list button:focus-visible {
+  background: var(--rf-panel);
+  outline: none;
+}
+
+.rf-fulltext {
+  margin-top: 0.75rem;
+}
+
+.rf-fulltext summary {
+  cursor: pointer;
+  color: var(--rf-muted);
+  font-size: 0.82rem;
+}
+
+.rf-fulltext pre {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem;
+  max-height: 50vh;
+  overflow: auto;
+  border: 1px solid var(--rf-border);
+  border-radius: 6px;
+  background: var(--rf-bg);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rf-selection-bar {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border: 1px solid var(--rf-border-strong);
+  border-radius: 8px;
+  background: var(--rf-bg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+}
+
+.rf-addtext {
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  border: 1px dashed var(--rf-border-strong);
+  border-radius: 8px;
+}
+
+.rf-addtext textarea {
+  width: 100%;
+  min-height: 5rem;
+  margin-bottom: 0.4rem;
+}
+
+/* ---------- Upload screen ---------- */
+
+.rf-upload {
+  max-width: 640px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+}
+
+.rf-upload h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.4rem;
+}
+
+.rf-upload p {
+  color: var(--rf-muted);
+  margin: 0 0 1.5rem;
+}
+
+.rf-upload-box {
+  padding: 1.25rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 10px;
+  background: var(--rf-panel);
+  margin-bottom: 1rem;
+}
+
+.rf-upload-box h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+}
+
+.rf-upload-box textarea {
+  width: 100%;
+  min-height: 8rem;
+  margin-bottom: 0.5rem;
+}
+
+.rf-error {
+  color: var(--rf-issue);
+  background: var(--rf-issue-bg);
+  border: 1px solid var(--rf-issue);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.75rem;
+}
+
+.rf-toast {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  background: var(--rf-accent);
+  color: var(--rf-accent-text);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.rf-toast .rf-btn {
+  background: transparent;
+  color: inherit;
+  border-color: currentColor;
+}
