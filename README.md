@@ -6,9 +6,9 @@ Everything happens in the browser. The resume is never uploaded, there is no
 backend, no LLM, and no network request at runtime. Parsing is rule-based, so
 it is deterministic, debuggable, free, and works offline.
 
-> **Status: stage 1 of 6.** What exists today is the scaffold and the
-> reading-order spike. There is no review form, no templates and no export
-> yet — those are stages 3 and 4. See [Build plan](#build-plan).
+> **Status: stage 2 of 6.** Scaffold, reading order and the parser exist.
+> There is no review form, no templates and no export yet — those are stages
+> 3 and 4. See [Build plan](#build-plan).
 
 ## Why build it this way
 
@@ -36,6 +36,9 @@ npm run dev
 | `npm test` | Vitest, once |
 | `npm run test:watch` | Vitest, watching |
 | `npm run build` | Typecheck then production build |
+| `npm run typecheck` | App and test typecheck, no build |
+| `npm run fixtures:score` | Per-fixture parser scoreboard |
+| `npm run fixtures:update` | Rewrite expected JSON from current parser output |
 
 Then drop resumes into `fixtures/resumes/` and score them — see
 [the corpus README](fixtures/resumes/README.md) for how, and for the exit
@@ -56,7 +59,7 @@ Upload (PDF / DOCX)
       |
       v
   [ LAYOUT  ]   line grouping -> gutter detection -> reading order
-      |             <- you are here
+      |
       v
   [ SECTION ]   header detection -> { experience, education, skills, ... }
       |
@@ -65,7 +68,7 @@ Upload (PDF / DOCX)
       |
       v
   resume.json   <- validated by Zod (SINGLE SOURCE OF TRUTH)
-      |
+      |             <- you are here
       v
   [ REVIEW  ]   editable form; low-confidence fields flagged
       |
@@ -90,7 +93,21 @@ src/
     lines.ts              merge split runs, group by baseline
     columns.ts            x-histogram -> gutter -> left/right partition
     reading-order.ts      detect -> split -> sort -> concatenate
-  spike/DebugOverlay.tsx  draws the layout decision on the rendered page
+  parse/
+    text.ts               the regexes: dates, phone, email, location, GPA
+    sections.ts           heading detection -> labelled sections
+    subsections.ts        vertical-gap entry splitting
+    wrap.ts               fold wrapped bullets back together
+    features.ts           the scoring registry: features -> winner + confidence
+    from-text.ts          plain text -> Line[], so DOCX shares the engine
+    fields/               basics, experience, education, skills, projects, certs
+    index.ts              orchestrates -> { data, confidence }
+  spike/
+    DebugOverlay.tsx      draws the layout decision on the rendered page
+    ParsedView.tsx        resume.json with confidence per field
+fixtures/
+  text/                   invented plain-text resumes (the DOCX shape)
+  expected/               what each one must parse to
 ```
 
 Module boundaries are enforced by convention and worth keeping: extraction
@@ -165,14 +182,86 @@ Known and accepted, in rough order of how often you will hit them:
 - **A header that is more than a third of the page.** Held-out band caps at
   35%, past which it would start hiding real content.
 
+## The parser
+
+Rule-based feature scoring, no model. Each field declares a set of feature
+functions carrying positive or negative scores; every candidate line in the
+field's section is scored against all of them, the highest wins, and how
+convincingly it won becomes the confidence the review form shows.
+
+```
+Name field                          Score   Why
+────────────────────────────────────────────────────────────────
+matches /^[a-zA-Z\s.'-]+$/            +3    names are letters
+is all uppercase                      +2    common header styling
+two to four words                     +2    names are short
+contains @                            −4    that is the email
+contains a digit                      −4    that is the phone
+contains ,                            −4    that is the address
+contains /                            −4    that is a URL
+```
+
+The negatives do the work. A name is hard to describe positively — "letters
+and spaces" also describes a job title — but easy to describe by what it
+cannot contain.
+
+### What happens to a resume
+
+1. **Sections.** Headings are found by keyword against a table of ~60 aliases
+   ("Work History" → experience), with a structural fallback for short
+   all-caps lines the table has never seen. Everything above the first
+   heading is the contact block.
+2. **Wrapped bullets fold.** A bullet spanning three visual lines is one
+   bullet. Geometry decides when it disagrees — outdented is a heading,
+   indented is a continuation — and text rules decide when it is silent.
+3. **Entries.** Sections split into jobs, degrees, projects on vertical gaps
+   larger than the median gap. On the DOCX path, where leading is uniform,
+   a heading-after-bullet signal takes over.
+4. **Fields.** Each entry's heading lines are split on delimiters and scored.
+   Position is a feature: the company is almost always on the line with the
+   dates.
+5. **Zod.** The result is validated. It never throws — a resume the parser
+   cannot read yields an empty-but-valid document with zero confidences,
+   and the review form takes it from there.
+
+### DOCX
+
+mammoth's `extractRawText` gives plain text with no geometry. It is turned
+into synthetic lines and fed through the same engine, with one adaptation:
+a blank line becomes a double-height gap, which is exactly what entry
+splitting looks for. The cost is that section detection has only keywords
+to go on, and column detection has nothing to do.
+
+### Bold is unreliable — design around it
+
+pdf.js reports a generic font family (`sans-serif`) for many PDFs, and
+`bold` comes back `false` for every line in them. Nothing in the parser
+*requires* bold: heading detection uses length and case, and the keyword
+table is what actually finds sections. Bold is supporting evidence where it
+exists and absent without consequence where it does not.
+
+### Known weak spots
+
+- **A project name in capitals** ("VIGIL") alone on its line is detected as
+  an unknown heading and splits its section. Harmless to the parsed fields,
+  since unknown sections are not parsed, but the review form will show it
+  as its own block.
+- **Non-standard section names** ("AI Security — Built & Published") land
+  in an unknown section rather than projects. Stage 3 lets the user
+  reassign them.
+- **Right-aligned dates on the role line** rather than the company line
+  cost the company its strongest positional feature. It usually still wins
+  on the others.
+- **Skills written as prose** split on commas like a list would.
+
 ## Build plan
 
 | Stage | Goal | Status |
 | --- | --- | --- |
 | 0 | Scaffold, schema, worker wired | ✅ done |
 | 1 | Reading-order spike | ✅ done — awaiting corpus scoring |
-| 2 | Parser: sections, subsections, field scoring | next |
-| 3 | Review form generated from the schema | |
+| 2 | Parser: sections, subsections, field scoring | ✅ done — 1 real resume at 40/40, 0 flagged |
+| 3 | Review form generated from the schema | next |
 | 4 | Templates and ZIP export | |
 | 5 | Ship: skills data, deploy, docs | |
 
