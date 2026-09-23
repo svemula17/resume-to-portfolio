@@ -27,15 +27,24 @@ export interface ImportedEntry<P extends ListPath> {
 }
 
 /**
- * The heading rule. With exactly one entry, the block's heading is that
- * entry's first line: "VIGIL" was a project name the parser mistook for a
- * heading, and prepending it gives the project its name back. With two or
- * more entries the heading is a section title — "AI SECURITY — BUILT &
- * PUBLISHED" — and belongs to none of them. Wrong guesses are visible
- * immediately and one undo away.
+ * The heading rule, for projects only. With exactly one entry, the block's
+ * heading is that entry's first line: "VIGIL" was a project name the parser
+ * mistook for a heading, and prepending it gives the project its name back.
+ * With two or more entries the heading is a section title — "AI SECURITY —
+ * BUILT & PUBLISHED" — and belongs to none of them.
+ *
+ * Never for experience or education. A caps heading over a job is "TOOLS"
+ * or "WORK", never the company, and on the first real run it outscored the
+ * actual company name beside it. Wrong guesses are visible immediately and
+ * one undo away, but a rule that is wrong on every job is not a guess.
  */
-function withHeading(text: string, heading: string | undefined, entryCount: number): string {
-  if (!heading || entryCount !== 1) return text;
+function withHeading(
+  target: ImportTarget,
+  text: string,
+  heading: string | undefined,
+  entryCount: number,
+): string {
+  if (target !== "projects" || !heading || entryCount !== 1) return text;
   return `${heading}\n${text}`;
 }
 
@@ -49,10 +58,18 @@ export function parseBlockAs<T extends ImportTarget>(
 
   if (target === "skills") {
     const parsed = parseSkills(initial);
-    return parsed.value.map((value, index) => ({
-      value: value as ItemOf<T>,
-      confidence: pick(parsed.confidence, `skills.${index}.`),
-    }));
+    return parsed.value.map((group, index) => {
+      // A block headed "LANGUAGES" holding one flat list is one labelled
+      // group; the heading is the label the parser could not see.
+      const value =
+        parsed.value.length === 1 && !group.category && heading
+          ? { ...group, category: titleCase(heading) }
+          : group;
+      return {
+        value: value as ItemOf<T>,
+        confidence: pick(parsed.confidence, `skills.${index}.`),
+      };
+    });
   }
 
   if (target === "certifications") {
@@ -71,7 +88,7 @@ export function parseBlockAs<T extends ImportTarget>(
   // Entry-shaped sections. Decide the entry count first, then apply the
   // heading rule and re-split, because the heading may itself become a line.
   const probe = entriesOf(initial, { loose: true });
-  const lines = mergeWrappedLines(linesFromText(withHeading(text, heading, probe.length)));
+  const lines = mergeWrappedLines(linesFromText(withHeading(target, text, heading, probe.length)));
   const entries = entriesOf(lines, { loose: true });
 
   return entries.map((entry, index) => {
@@ -90,6 +107,12 @@ export function parseBlockAs<T extends ImportTarget>(
       }
     }
   });
+}
+
+/** "LANGUAGES" → "Languages"; anything not all-caps is left alone. */
+function titleCase(text: string): string {
+  if (text !== text.toUpperCase()) return text;
+  return text.toLowerCase().replace(/(^|\s|[-&/])([a-z])/g, (_, before: string, letter: string) => before + letter.toUpperCase());
 }
 
 function pick(confidence: Record<string, number>, prefix: string): Record<string, number> {

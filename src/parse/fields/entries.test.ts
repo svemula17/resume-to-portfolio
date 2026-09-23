@@ -55,6 +55,23 @@ Jan 2021 - Present
     expect(entry.value.location).toBe("Austin, TX");
   });
 
+  it("does not take a skills line for the company, nor its front for a location", () => {
+    // A sidebar interleaved into the experience section, as two-column
+    // reading order produces it.
+    const entry = parseExperienceEntry(
+      linesFromText(`Splunk, Terraform, Kubernetes
+Platform Engineer
+Initech
+Jun 2019 - Feb 2022
+- Ran the migration.`),
+      0,
+    );
+
+    expect(entry.value.role).toBe("Platform Engineer");
+    expect(entry.value.company).toBe("Initech");
+    expect(entry.value.location).toBeUndefined();
+  });
+
   it("keys confidence by entry index so the review form can flag one job", () => {
     const entry = parseExperienceEntry(linesFromText("Engineer\nAcme Inc. | 2020 - 2021"), 3);
     expect(Object.keys(entry.confidence)).toContain("experience.3.role");

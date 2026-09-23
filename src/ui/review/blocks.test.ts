@@ -247,4 +247,30 @@ describe("parseBlockAs with unpunctuated bullets", () => {
     expect(entries.map((entry) => entry.value.name)).toEqual(["Vigil", "Sentinel"]);
   });
 });
+
+describe("parseBlockAs heading rule is projects-only", () => {
+  it("never prepends a heading to a single experience entry", () => {
+    const entries = parseBlockAs(
+      "experience",
+      "Splunk, Terraform, Kubernetes\nPlatform Engineer\nInitech\nJun 2019 - Feb 2022\n- Ran the migration.",
+      "TOOLS",
+    );
+    expect(entries).toHaveLength(1);
+    expect(entries[0]!.value.role).toBe("Platform Engineer");
+    expect(entries[0]!.value.company).not.toBe("TOOLS");
+  });
+});
+
+describe("parseBlockAs skills heading", () => {
+  it("uses the block heading as the category of a single flat list", () => {
+    const entries = parseBlockAs("skills", "Python, Go, Rust", "LANGUAGES");
+    expect(entries).toHaveLength(1);
+    expect(entries[0]!.value).toEqual({ category: "Languages", items: ["Python", "Go", "Rust"] });
+  });
+
+  it("leaves labelled groups alone", () => {
+    const entries = parseBlockAs("skills", "Languages: Go\nTools: Splunk", "SKILLS");
+    expect(entries.map((entry) => entry.value.category)).toEqual(["Languages", "Tools"]);
+  });
+});
 });

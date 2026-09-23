@@ -58,8 +58,12 @@ const ROLE_FEATURES: Feature<Candidate>[] = [
   feature("very long", -3, ({ text }) => text.length > 70),
 ];
 
+/** "Splunk, Terraform, Kubernetes" is a skills line, not an employer. */
+const LOOKS_LIKE_LIST = /,.*,/;
+
 const COMPANY_FEATURES: Feature<Candidate>[] = [
   feature("contains a company suffix", 4, ({ text }) => COMPANY_SUFFIX.test(text)),
+  feature("looks like a comma list", -4, ({ text }) => LOOKS_LIKE_LIST.test(text)),
   // The strongest structural signal there is: templates put the dates on the
   // company line far more often than on the role line.
   feature("shares a line with the dates", 3, ({ onDateLine }) => onDateLine),
@@ -76,11 +80,22 @@ const COMPANY_FEATURES: Feature<Candidate>[] = [
 /** Split "Datadog -- United States (Remote)" into company and location. */
 const HEADING_DELIMITER = /\s+(?:--|—|–|\||·|•)\s+|\s{3,}/;
 
+/**
+ * Split "Acme Corporation, Austin, TX" into company and location.
+ *
+ * Only a location at the END of the text is taken. A "City, Country"
+ * pattern is loose enough to match "Splunk, Terraform" at the front of a
+ * skills line, and stripping that left ", Kubernetes" as a company on the
+ * first real run. A company writes its location after its name, never
+ * before it.
+ */
 function extractLocation(text: string): { rest: string; location?: string } {
   const match = US_LOCATION.exec(text) ?? INTL_LOCATION.exec(text);
   if (!match) return { rest: text };
+  const end = match.index + match[0].length;
+  if (text.slice(end).trim().replace(/[()]/g, "") !== "") return { rest: text };
   return {
-    rest: text.replace(match[0], "").replace(/\s*[|•·,–—-]\s*$/, "").trim(),
+    rest: text.slice(0, match.index).replace(/\s*[|•·,–—-]\s*$/, "").trim(),
     location: match[0],
   };
 }
@@ -121,7 +136,14 @@ export function parseExperienceEntry(lines: Line[], index: number): ParsedEntry<
 
   const role = pickBest(candidates, ROLE_FEATURES);
   const companyPool = candidates.filter((candidate) => candidate !== role?.value);
-  const company = pickBest(companyPool, COMPANY_FEATURES);
+  // "Role / Company / Dates" is the commonest three-line template, so the
+  // line right after the role is where the company most often is. Known
+  // only once the role is picked, hence a feature built per call.
+  const roleLine = role?.value.lineIndex;
+  const company = pickBest(companyPool, [
+    ...COMPANY_FEATURES,
+    feature("follows the role line", 2, ({ lineIndex }) => roleLine !== undefined && lineIndex === roleLine + 1),
+  ]);
 
   let location: string | undefined;
   let companyText = company?.value.text;
