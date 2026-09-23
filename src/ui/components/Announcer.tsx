@@ -21,10 +21,12 @@ export function AnnouncerProvider({ children }: { children: ReactNode }) {
   //
   // Repeating the same text must still announce, and equal text is not a
   // change either — so the region is cleared first and filled on the next
-  // frame.
+  // task. A timeout rather than requestAnimationFrame: rAF is paused in a
+  // hidden document, and an announcement queued there should still land
+  // when the tab comes back.
   const announce = useCallback<Announce>((next) => {
     setMessage("");
-    requestAnimationFrame(() => setMessage(next));
+    setTimeout(() => setMessage(next), 0);
   }, []);
 
   const value = useMemo(() => announce, [announce]);
