@@ -1,0 +1,39 @@
+Jane Doe
+Senior Software Engineer
+Austin, TX | (512) 555-0100 | jane@example.com | linkedin.com/in/janedoe | github.com/janedoe
+
+SUMMARY
+Backend engineer with eight years building payment systems. Owns things end to end.
+
+WORK EXPERIENCE
+
+Staff Engineer
+Acme Corporation, Austin, TX
+Jan 2021 - Present
+- Led migration of the billing pipeline to event sourcing, cutting month-end close from three
+days to four hours.
+- Mentored six engineers; two promoted to senior.
+
+Software Engineer
+Globex Inc. | Remote
+Jun 2017 - Dec 2020
+- Built the fraud scoring service in Go.
+- On-call lead for the payments tier.
+
+EDUCATION
+
+B.S. in Computer Science
+University of Texas at Austin, 2013 - 2017
+GPA: 3.8/4.0
+
+SKILLS
+Languages: Go, Python, TypeScript
+Infrastructure: Kubernetes, Terraform, AWS (EKS, Lambda)
+
+PROJECTS
+Ledger (Go, Postgres) - github.com/janedoe/ledger
+An append-only double-entry ledger with a REST API.
+
+CERTIFICATIONS
+AWS Certified Solutions Architect – Associate, Amazon, 2022
+CKA: Certified Kubernetes Administrator, 2023

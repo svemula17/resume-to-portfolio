@@ -10,7 +10,7 @@ import type { Line } from "../../layout";
 import type { Education } from "../../schema/resume";
 import { feature, pickBest, type Feature } from "../features";
 import { GPA, YEAR } from "../text";
-import { findDateRange } from "./dates";
+import { findDateRange, stripDateRange } from "./dates";
 import type { ParsedEntry } from "./experience";
 
 const DEGREE =
@@ -52,13 +52,23 @@ export function parseEducationEntry(lines: Line[], index: number): ParsedEntry<E
   const prefix = `education.${index}`;
   const confidence: Record<string, number> = {};
 
+  const range = findDateRange(lines);
+
+  // Dates come off before scoring so "University of Texas, 2013 - 2017" is
+  // scored — and recorded — as the school alone.
   const candidates: string[] = [];
-  for (const line of lines) {
-    for (const part of line.text.split(SPLIT)) {
-      const trimmed = part.trim();
-      if (trimmed !== "") candidates.push(trimmed);
+  lines.forEach((line, lineIndex) => {
+    const text =
+      range && range.lineIndex === lineIndex
+        ? stripDateRange(line.text, range.matchedText)
+        : line.text;
+    for (const part of text.split(SPLIT)) {
+      const trimmed = part.trim().replace(/[,;]+$/, "");
+      if (trimmed !== "" && !/^(?:expected|graduated|anticipated)$/i.test(trimmed)) {
+        candidates.push(trimmed);
+      }
     }
-  }
+  });
 
   const degree = pickBest(candidates, DEGREE_FEATURES);
   const school = pickBest(
@@ -78,7 +88,6 @@ export function parseEducationEntry(lines: Line[], index: number): ParsedEntry<E
     }
   }
 
-  const range = findDateRange(lines);
   let startDate = range?.startDate;
   let endDate = range?.endDate;
   if (!range) {

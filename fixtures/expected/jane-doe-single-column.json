@@ -1,0 +1,97 @@
+{
+  "basics": {
+    "name": "Jane Doe",
+    "title": "Senior Software Engineer",
+    "summary": "Backend engineer with eight years building payment systems. Owns things end to end.",
+    "email": "jane@example.com",
+    "phone": "(512) 555-0100",
+    "location": "Austin, TX",
+    "links": [
+      {
+        "label": "LinkedIn",
+        "url": "linkedin.com/in/janedoe"
+      },
+      {
+        "label": "GitHub",
+        "url": "github.com/janedoe"
+      }
+    ]
+  },
+  "experience": [
+    {
+      "company": "Acme Corporation",
+      "role": "Staff Engineer",
+      "startDate": "Jan 2021",
+      "current": true,
+      "location": "Austin, TX",
+      "bullets": [
+        "Led migration of the billing pipeline to event sourcing, cutting month-end close from three days to four hours.",
+        "Mentored six engineers; two promoted to senior."
+      ]
+    },
+    {
+      "company": "Globex Inc.",
+      "role": "Software Engineer",
+      "startDate": "Jun 2017",
+      "endDate": "Dec 2020",
+      "current": false,
+      "location": "Remote",
+      "bullets": [
+        "Built the fraud scoring service in Go.",
+        "On-call lead for the payments tier."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "University of Texas at Austin",
+      "degree": "B.S. in Computer Science",
+      "field": "Computer Science",
+      "startDate": "2013",
+      "endDate": "2017",
+      "gpa": "3.8/4.0"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Ledger",
+      "description": "An append-only double-entry ledger with a REST API.",
+      "tech": [
+        "Go",
+        "Postgres"
+      ],
+      "url": "github.com/janedoe/ledger"
+    }
+  ],
+  "skills": [
+    {
+      "category": "Languages",
+      "items": [
+        "Go",
+        "Python",
+        "TypeScript"
+      ]
+    },
+    {
+      "category": "Infrastructure",
+      "items": [
+        "Kubernetes",
+        "Terraform",
+        "AWS",
+        "EKS",
+        "Lambda"
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect – Associate",
+      "issuer": "Amazon",
+      "date": "2022"
+    },
+    {
+      "name": "CKA: Certified Kubernetes Administrator",
+      "date": "2023"
+    }
+  ]
+}

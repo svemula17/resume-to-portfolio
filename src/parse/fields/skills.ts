@@ -91,8 +91,9 @@ export function parseSkills(lines: Line[]): {
   const confidence: Record<string, number> = {};
   groups.forEach((group, index) => {
     // A labelled group is far stronger evidence than a line that merely split
-    // on commas, which is also how a prose sentence would split.
-    confidence[`skills.${index}.items`] = group.category ? 0.9 : 0.6;
+    // on commas, which is also how a prose sentence would split. The flat
+    // case sits under the review threshold on purpose: it is worth a glance.
+    confidence[`skills.${index}.items`] = group.category ? 0.9 : 0.5;
   });
 
   return { value: groups, confidence };
