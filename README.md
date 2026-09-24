@@ -6,9 +6,9 @@ Everything happens in the browser. The resume is never uploaded, there is no
 backend, no LLM, and no network request at runtime. Parsing is rule-based, so
 it is deterministic, debuggable, free, and works offline.
 
-> **Status: stage 4 of 6.** Upload, parse, review, pick a template, preview,
-> download the site as a ZIP. Stage 5 is the ship list: skills data, deploy,
-> attribution. See [Build plan](#build-plan).
+> **Live: <https://svemula17.github.io/resume-to-portfolio/>** — upload a
+> resume, review it, pick a template, download the site. Every stage of the
+> build plan is done; see [Build plan](#build-plan) for what v2 could hold.
 
 ## Why build it this way
 
@@ -367,19 +367,36 @@ would let a sandboxed script reach the parent origin.
 | 2 | Parser: sections, subsections, field scoring | ✅ done — 1 real resume at 40/40, 0 flagged |
 | 3 | Review form generated from the schema | ✅ done — worst-case fixture in 8 stops + 4 clicks |
 | 4 | Templates and ZIP export | ✅ done — 3 templates, hostile-input tested, ZIP opens offline |
-| 5 | Ship: skills data, deploy, docs | next |
+| 5 | Ship: skills data, deploy, docs | ✅ done — live on GitHub Pages, CSP, 9,250-term vocabulary |
 
 Out of scope for v1: OCR, three-column and sidebar layouts, LinkedIn import,
 one-click deploy, accounts, custom colour theming, multi-page output.
 
-## Deployment notes
+## Deployment
 
-`workerSrc` is built from `import.meta.env.BASE_URL`, so the app works both at
-a domain root and under a subpath with no code change:
+The app is static output under `dist/`. `workerSrc` and every asset URL are
+built from `import.meta.env.BASE_URL`, so the same code serves at a domain
+root and under a repository subpath; `base` is the one deploy-specific value.
 
-- **Vercel** — zero config, served at `/`.
-- **GitHub Pages** — set `base: "/<repo>/"` in `vite.config.ts` and add a
-  `.nojekyll` file to the published output.
+**GitHub Pages** (the live URL above) — `.github/workflows/pages.yml` runs
+typecheck, tests and build with `VITE_BASE=/<repo>/` on every push to `main`,
+adds `.nojekyll`, and deploys. Pages is set to "GitHub Actions" as the source.
+Fork the repo and the same workflow deploys your fork.
+
+**Vercel** — import the repository; `vercel.json` sets the framework, the
+output directory and the security headers, including the content security
+policy. No environment variables. The CSP is also injected as a meta tag at
+build time so Pages, which cannot set headers, enforces the same policy.
+
+**Anywhere else** — `npm run build`, upload `dist/`. If it is served under a
+subpath, build with `VITE_BASE=/that/path/`.
+
+### What the page is allowed to do
+
+`script-src 'self'`, `connect-src 'self'`, workers and frames from `blob:`
+for pdf.js and the preview iframe, nothing from any other origin. The policy
+lives in `vite.config.ts`, is mirrored in `vercel.json`, and a test keeps the
+two identical.
 
 ## Licence notes
 
