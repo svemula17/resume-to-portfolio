@@ -1,5 +1,13 @@
-// Placeholder until the creative template lands; renders as minimal so the registry typechecks.
 import type { Template } from "../types";
-import { minimal } from "../minimal/meta";
+import { css } from "./css";
+import { render } from "./html";
 
-export const creative: Template = { ...minimal, meta: { ...minimal.meta, id: "creative", name: "Creative" } };
+export const creative: Template = {
+  meta: {
+    id: "creative",
+    name: "Creative",
+    description: "Editorial and bold: a display name on a warm band, a timeline, and a card grid.",
+    traits: ["Display serif", "Timeline", "Card grid", "Dark mode"],
+  },
+  render: (resume, options) => ({ "index.html": render(resume, options), "styles.css": css }),
+};
