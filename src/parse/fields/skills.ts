@@ -141,6 +141,19 @@ export function parseSkills(
       continue;
     }
 
+    // Skill pills: each skill in its own box, arriving as separate items on
+    // one line with nothing but a gap between them. The gap is the
+    // delimiter a reader sees; make it one the splitter sees. A leading
+    // category word — "Languages" before the first pill — is the label.
+    if (line.items.length >= 2 && !/[,;|•·]/.test(text) && line.items.every((item) => item.str.trim().length <= 30)) {
+      const parts = line.items.map((item) => item.str.trim()).filter(Boolean);
+      const first = parts[0] ?? "";
+      text =
+        first.endsWith(":") || CATEGORY_WORD.test(first)
+          ? `${first.replace(/:$/, "")}: ${parts.slice(1).join(", ")}`
+          : parts.join(", ");
+    }
+
     const labelled = LABELLED.exec(text);
     if (labelled) {
       open = { category: labelled[1]!.trim(), text: labelled[2]! };
