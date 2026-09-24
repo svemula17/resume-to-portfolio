@@ -6,8 +6,7 @@
  * The stage-1 spike stays reachable at ?debug until stage 4 deletes it;
  * the overlay is still the fastest way to see why a PDF read the way it did.
  */
-import { useCallback, useMemo, useReducer, useState } from "react";
-import { SpikeApp } from "./spike/SpikeApp";
+import { lazy, Suspense, useCallback, useMemo, useReducer, useState } from "react";
 import { ExportScreen } from "./ui/ExportScreen";
 import { ReviewForm } from "./ui/ReviewForm";
 import { UploadScreen } from "./ui/UploadScreen";
@@ -35,8 +34,18 @@ function boot(storage: ReturnType<typeof getLocalStorage>): Boot {
   return { history: initialHistory(draft.state), restoredAt: draft.savedAt, restoreFailed: false, raw };
 }
 
+// The spike imports pdf.js eagerly for its overlay; keep it off the main
+// chunk so nobody but a ?debug visitor downloads it.
+const SpikeApp = lazy(() => import("./spike/SpikeApp").then((m) => ({ default: m.SpikeApp })));
+
 export default function App() {
-  if (new URLSearchParams(window.location.search).has("debug")) return <SpikeApp />;
+  if (new URLSearchParams(window.location.search).has("debug")) {
+    return (
+      <Suspense fallback={<p style={{ padding: "2rem" }}>Loading debug view…</p>}>
+        <SpikeApp />
+      </Suspense>
+    );
+  }
   return <ReviewApp />;
 }
 
