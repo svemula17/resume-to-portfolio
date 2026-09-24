@@ -16,6 +16,7 @@
     "typecheck": "tsc -b && tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "mammoth": "^1.12.3",
     "pdfjs-dist": "6.3.289",
     "react": "^19.2.8",
