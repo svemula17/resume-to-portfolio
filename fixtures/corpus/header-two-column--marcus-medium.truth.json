@@ -1,0 +1,130 @@
+{
+  "id": "header-two-column--marcus-medium",
+  "layout": "header-two-column",
+  "family": "two-column",
+  "person": "marcus-medium",
+  "sectionOrder": [
+    "basics",
+    "skills",
+    "education",
+    "certifications",
+    "summary",
+    "experience",
+    "projects"
+  ],
+  "truth": {
+    "basics": {
+      "name": "Marcus Adeyemi",
+      "title": "Site Reliability Engineer",
+      "summary": "SRE with seven years running production Kubernetes for payments and logistics platforms. Builds the tooling, then runs the on-call rotation that depends on it.",
+      "email": "marcus.adeyemi@example.com",
+      "phone": "312-555-0177",
+      "location": "Chicago, IL",
+      "links": [
+        {
+          "label": "LinkedIn",
+          "url": "linkedin.com/in/marcus-adeyemi"
+        },
+        {
+          "label": "GitHub",
+          "url": "github.com/madeyemi"
+        }
+      ]
+    },
+    "experience": [
+      {
+        "company": "Northwind Freight",
+        "role": "Senior Site Reliability Engineer",
+        "location": "Chicago, IL",
+        "startDate": "Mar 2021",
+        "current": true,
+        "bullets": [
+          "Cut p99 latency of the dispatch API by forty percent through connection pooling and cache tuning.",
+          "Led the migration of sixty services from self-managed clusters to managed Kubernetes.",
+          "Wrote the incident response runbook adopted across three engineering teams."
+        ]
+      },
+      {
+        "company": "Halcyon Pay",
+        "role": "Site Reliability Engineer",
+        "location": "Remote",
+        "startDate": "Aug 2018",
+        "endDate": "Feb 2021",
+        "current": false,
+        "bullets": [
+          "Owned observability: Prometheus, Grafana and alert routing for a payments platform.",
+          "Reduced monthly cloud spend by eighteen percent with rightsizing and spot capacity."
+        ]
+      },
+      {
+        "company": "Initech",
+        "role": "Systems Administrator",
+        "location": "Milwaukee, WI",
+        "startDate": "Jun 2016",
+        "endDate": "Jul 2018",
+        "current": false,
+        "bullets": [
+          "Managed Linux fleet configuration with Ansible."
+        ]
+      }
+    ],
+    "education": [
+      {
+        "school": "University of Illinois Chicago",
+        "degree": "BS Information Technology",
+        "startDate": "2012",
+        "endDate": "2016"
+      }
+    ],
+    "projects": [
+      {
+        "name": "kube-drain",
+        "description": "A safer node drain with pod disruption awareness.",
+        "tech": [
+          "Go",
+          "Kubernetes"
+        ],
+        "url": "github.com/madeyemi/kube-drain"
+      }
+    ],
+    "skills": [
+      {
+        "category": "Platform",
+        "items": [
+          "Kubernetes",
+          "Terraform",
+          "AWS",
+          "GCP"
+        ]
+      },
+      {
+        "category": "Observability",
+        "items": [
+          "Prometheus",
+          "Grafana",
+          "OpenTelemetry"
+        ]
+      },
+      {
+        "category": "Languages",
+        "items": [
+          "Go",
+          "Python",
+          "Bash"
+        ]
+      }
+    ],
+    "certifications": [
+      {
+        "name": "Certified Kubernetes Administrator",
+        "issuer": "CNCF",
+        "date": "2022"
+      },
+      {
+        "name": "AWS Solutions Architect Associate",
+        "issuer": "Amazon",
+        "date": "2020"
+      }
+    ]
+  }
+}

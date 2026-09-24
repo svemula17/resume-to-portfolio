@@ -1,0 +1,173 @@
+{
+  "id": "sidebar-right--elena-long",
+  "layout": "sidebar-right",
+  "family": "two-column",
+  "person": "elena-long",
+  "sectionOrder": [
+    "basics",
+    "summary",
+    "experience",
+    "projects",
+    "skills",
+    "education",
+    "certifications"
+  ],
+  "truth": {
+    "basics": {
+      "name": "Elena Vasquez-Moreno",
+      "title": "Data Engineering Lead",
+      "summary": "Data engineering lead with eleven years building batch and streaming platforms in finance and healthcare. Manages a team of eight; still writes the hard parts.",
+      "email": "elena.vm@example.com",
+      "phone": "+1 646 555 0198",
+      "location": "New York, NY",
+      "links": [
+        {
+          "label": "LinkedIn",
+          "url": "linkedin.com/in/elena-vasquez-moreno"
+        },
+        {
+          "label": "GitHub",
+          "url": "github.com/evasquez"
+        },
+        {
+          "label": "elenavm.dev",
+          "url": "elenavm.dev"
+        }
+      ]
+    },
+    "experience": [
+      {
+        "company": "Meridian Health",
+        "role": "Data Engineering Lead",
+        "location": "New York, NY",
+        "startDate": "Sep 2020",
+        "current": true,
+        "bullets": [
+          "Lead a team of eight engineers building the clinical data platform on Spark and Delta Lake.",
+          "Designed the streaming ingestion layer handling two billion events a day with exactly-once semantics.",
+          "Brought the platform through HIPAA and SOC 2 audits with no findings.",
+          "Established the data contract programme that cut downstream breakages by seventy percent."
+        ]
+      },
+      {
+        "company": "Argent Capital",
+        "role": "Senior Data Engineer",
+        "location": "New York, NY",
+        "startDate": "Jan 2017",
+        "endDate": "Aug 2020",
+        "current": false,
+        "bullets": [
+          "Built the market data lake on S3 and Athena, replacing a vendor system at a fifth of the cost.",
+          "Wrote the Airflow framework used by forty pipelines across the firm.",
+          "Mentored four junior engineers, two of whom were promoted to senior."
+        ]
+      },
+      {
+        "company": "Cobalt Analytics",
+        "role": "Data Engineer",
+        "location": "Boston, MA",
+        "startDate": "Jun 2014",
+        "endDate": "Dec 2016",
+        "current": false,
+        "bullets": [
+          "Migrated nightly ETL from stored procedures to Spark, cutting the batch window from nine hours to two.",
+          "Introduced schema versioning for the warehouse."
+        ]
+      },
+      {
+        "company": "Beacon Software",
+        "role": "Software Engineer",
+        "location": "Boston, MA",
+        "startDate": "Jul 2012",
+        "endDate": "May 2014",
+        "current": false,
+        "bullets": [
+          "Developed reporting features for a SaaS analytics product in Java."
+        ]
+      }
+    ],
+    "education": [
+      {
+        "school": "Columbia University",
+        "degree": "MS Computer Science",
+        "field": "Data Systems",
+        "startDate": "2015",
+        "endDate": "2017"
+      },
+      {
+        "school": "Boston University",
+        "degree": "BS Computer Engineering",
+        "startDate": "2008",
+        "endDate": "2012",
+        "gpa": "3.7/4.0"
+      }
+    ],
+    "projects": [
+      {
+        "name": "deltacheck",
+        "description": "Schema drift detection for Delta Lake tables with Slack alerts.",
+        "tech": [
+          "Python",
+          "Spark"
+        ],
+        "url": "github.com/evasquez/deltacheck"
+      },
+      {
+        "name": "pipeline-lint",
+        "description": "Static checks for Airflow DAGs: cycles, missing retries, unbounded parallelism.",
+        "tech": [
+          "Python"
+        ]
+      }
+    ],
+    "skills": [
+      {
+        "category": "Data",
+        "items": [
+          "Spark",
+          "Delta Lake",
+          "Kafka",
+          "Airflow",
+          "dbt"
+        ]
+      },
+      {
+        "category": "Cloud",
+        "items": [
+          "AWS",
+          "Databricks",
+          "Snowflake"
+        ]
+      },
+      {
+        "category": "Languages",
+        "items": [
+          "Python",
+          "Scala",
+          "SQL",
+          "Java"
+        ]
+      },
+      {
+        "category": "Leadership",
+        "items": [
+          "Hiring",
+          "Roadmapping",
+          "Mentoring"
+        ]
+      }
+    ],
+    "certifications": [
+      {
+        "name": "Databricks Certified Data Engineer Professional",
+        "issuer": "Databricks",
+        "date": "2023"
+      },
+      {
+        "name": "AWS Certified Data Analytics – Specialty",
+        "issuer": "Amazon",
+        "date": "2021"
+      }
+    ]
+  }
+}

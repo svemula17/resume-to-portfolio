@@ -74,9 +74,18 @@ function norm(text: string | undefined): string {
     .trim();
 }
 
+/**
+ * A unit is one string, or a set of strings whose order among themselves
+ * the layout decides. Role-then-company and company-then-role are both
+ * correct reading orders for one job; so are school-then-degree and
+ * degree-then-school. Scoring them as a fixed sequence would penalise the
+ * layout stage for a choice the template made.
+ */
+type Unit = string | string[];
+
 /** Text units in reading order, per the layout's section order. */
-function units(truth: Resume, order: SectionId[]): string[] {
-  const out: string[] = [];
+function units(truth: Resume, order: SectionId[]): Unit[] {
+  const out: Unit[] = [];
   for (const section of order) {
     switch (section) {
       case "basics":
@@ -88,15 +97,15 @@ function units(truth: Resume, order: SectionId[]): string[] {
         break;
       case "experience":
         for (const job of truth.experience) {
-          if (job.role) out.push(job.role);
-          if (job.company) out.push(job.company);
+          const head = [job.role, job.company].filter((v): v is string => Boolean(v));
+          if (head.length > 0) out.push(head);
           out.push(...job.bullets);
         }
         break;
       case "education":
         for (const e of truth.education) {
-          if (e.school) out.push(e.school);
-          if (e.degree) out.push(e.degree);
+          const head = [e.school, e.degree].filter((v): v is string => Boolean(v));
+          if (head.length > 0) out.push(head);
         }
         break;
       case "skills":
@@ -116,6 +125,10 @@ function units(truth: Resume, order: SectionId[]): string[] {
   return out;
 }
 
+function label(unit: Unit): string {
+  return (Array.isArray(unit) ? unit.join(" / ") : unit).slice(0, 30);
+}
+
 /**
  * Fraction of consecutive truth units found in order.
  *
@@ -129,7 +142,7 @@ function units(truth: Resume, order: SectionId[]): string[] {
  * A unit that wraps across lines is still one unit in the text — lines are
  * joined with a space — so a long bullet is one hit or one miss.
  */
-function readingOrderScore(text: string, truthUnits: string[]): { score: number; misses: string[] } {
+function readingOrderScore(text: string, truthUnits: Unit[]): { score: number; misses: string[] } {
   const haystack = norm(text);
   const misses: string[] = [];
   let cursor = 0;
@@ -137,21 +150,36 @@ function readingOrderScore(text: string, truthUnits: string[]): { score: number;
   let pairs = 0;
   let previousFound = true;
 
+  /** Where a unit sits, searched from the cursor; a set takes its members' span. */
+  const locate = (unit: Unit): { start: number; end: number; inOrder: boolean } | null => {
+    const parts = Array.isArray(unit) ? unit : [unit];
+    let start = Infinity;
+    let end = -1;
+    let inOrder = true;
+    for (const part of parts) {
+      const needle = norm(part);
+      const ahead = haystack.indexOf(needle, cursor);
+      const found = ahead >= 0 ? ahead : haystack.indexOf(needle);
+      if (found < 0) return null;
+      if (ahead < 0) inOrder = false;
+      start = Math.min(start, found);
+      end = Math.max(end, found + needle.length);
+    }
+    return { start, end, inOrder };
+  };
+
   truthUnits.forEach((unit, i) => {
-    const needle = norm(unit);
-    const ahead = haystack.indexOf(needle, cursor);
-    const found = ahead >= 0 ? ahead : haystack.indexOf(needle);
-    const inOrder = ahead >= 0;
+    const at = locate(unit);
     if (i > 0) {
       pairs += 1;
-      if (inOrder && previousFound) ordered += 1;
+      if (at && at.inOrder && previousFound) ordered += 1;
       else {
-        const why = found < 0 ? "missing" : !previousFound ? "prev missing" : "swapped";
-        misses.push(`${truthUnits[i - 1]!.slice(0, 30)} → ${unit.slice(0, 30)} (${why})`);
+        const why = !at ? "missing" : !previousFound ? "prev missing" : "swapped";
+        misses.push(`${label(truthUnits[i - 1]!)} → ${label(unit)} (${why})`);
       }
     }
-    if (found >= 0) cursor = found + needle.length;
-    previousFound = found >= 0;
+    if (at) cursor = at.end;
+    previousFound = at !== null;
   });
 
   return { score: pairs === 0 ? 1 : ordered / pairs, misses };
