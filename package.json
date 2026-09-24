@@ -14,7 +14,9 @@
     "fixtures:update": "tsx scripts/fixtures.mjs update",
     "fixtures:score": "tsx scripts/fixtures.mjs score",
     "skills:build": "node scripts/build-skills.mjs",
-    "typecheck": "tsc -b && tsc --noEmit -p tsconfig.test.json"
+    "typecheck": "tsc -b && tsc --noEmit -p tsconfig.test.json",
+    "corpus:build": "tsx scripts/corpus/build.ts",
+    "corpus:score": "tsx scripts/corpus/score.ts"
   },
   "dependencies": {
     "fflate": "^0.8.3",

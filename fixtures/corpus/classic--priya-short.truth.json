@@ -1,0 +1,83 @@
+{
+  "id": "classic--priya-short",
+  "layout": "classic",
+  "family": "single",
+  "person": "priya-short",
+  "sectionOrder": [
+    "basics",
+    "summary",
+    "experience",
+    "education",
+    "skills",
+    "projects",
+    "certifications"
+  ],
+  "truth": {
+    "basics": {
+      "name": "Priya Raman",
+      "title": "Frontend Engineer",
+      "summary": "Frontend engineer with four years shipping accessible React applications.",
+      "email": "priya.raman@example.com",
+      "phone": "(415) 555-0134",
+      "location": "Oakland, CA",
+      "links": [
+        {
+          "label": "GitHub",
+          "url": "github.com/priyaraman"
+        }
+      ]
+    },
+    "experience": [
+      {
+        "company": "Lumen Labs",
+        "role": "Frontend Engineer",
+        "location": "Remote",
+        "startDate": "Jan 2022",
+        "current": true,
+        "bullets": [
+          "Rebuilt the checkout flow in React, lifting conversion by nine percent.",
+          "Introduced visual regression testing across forty components."
+        ]
+      },
+      {
+        "company": "Bright Owl",
+        "role": "Junior Developer",
+        "location": "Oakland, CA",
+        "startDate": "Jun 2020",
+        "endDate": "Dec 2021",
+        "current": false,
+        "bullets": [
+          "Maintained the marketing site and its content pipeline."
+        ]
+      }
+    ],
+    "education": [
+      {
+        "school": "San Jose State University",
+        "degree": "BS Computer Science",
+        "startDate": "2016",
+        "endDate": "2020"
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "category": "Languages",
+        "items": [
+          "TypeScript",
+          "JavaScript",
+          "CSS"
+        ]
+      },
+      {
+        "category": "Frameworks",
+        "items": [
+          "React",
+          "Next.js",
+          "Vite"
+        ]
+      }
+    ],
+    "certifications": []
+  }
+}
