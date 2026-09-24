@@ -101,6 +101,25 @@ function mergeAdjacent(items: TextItem[], charWidth: number): TextItem[] {
   return merged;
 }
 
+/** Gaps wider than this many characters separate cells, not words. */
+const CELL_GAP_CHARS = 3;
+
+function joinItems(items: TextItem[], charWidth: number): string {
+  let text = "";
+  items.forEach((item, index) => {
+    const str = item.str.replace(/\s+/g, " ").trim();
+    if (str === "") return;
+    if (text === "") {
+      text = str;
+      return;
+    }
+    const previous = items[index - 1]!;
+    const gap = item.x - (previous.x + previous.width);
+    text += (gap > charWidth * CELL_GAP_CHARS ? "   " : " ") + str;
+  });
+  return text;
+}
+
 /** Build a Line from items already known to share a baseline. */
 function toLine(items: TextItem[], charWidth: number): Line {
   const merged = mergeAdjacent(items, charWidth);
@@ -114,9 +133,12 @@ function toLine(items: TextItem[], charWidth: number): Line {
     isBold: merged.every((item) => item.bold),
     x: merged[0]!.x,
     right: last.x + last.width,
-    // Items separated by more than a character already represent distinct
-    // words or columns of a tabbed row, so they are joined with a space.
-    text: merged.map((item) => item.str).join(" ").replace(/\s+/g, " ").trim(),
+    // Items separated by more than a character are distinct words or
+    // cells of a tabbed row. A word gap becomes one space; a cell gap — a
+    // date rail beside its content, a right-aligned date — becomes three,
+    // which is the delimiter the parser already splits headings on. Losing
+    // that distinction glued "Jan 2022 –" onto "Frontend Engineer".
+    text: joinItems(merged, charWidth),
   };
 }
 

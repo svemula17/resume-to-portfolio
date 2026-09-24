@@ -64,9 +64,20 @@ export function parseEducationEntry(lines: Line[], index: number): ParsedEntry<E
         : line.text;
     for (const part of text.split(SPLIT)) {
       const trimmed = part.trim().replace(/[,;]+$/, "");
-      if (trimmed !== "" && !/^(?:expected|graduated|anticipated)$/i.test(trimmed)) {
-        candidates.push(trimmed);
+      if (trimmed === "" || /^(?:expected|graduated|anticipated)$/i.test(trimmed)) continue;
+      // "BS Computer Science, San Jose State University": one line, two
+      // fields. Split at the comma only when each side is recognisably one
+      // of them, so "Columbia University, New York, NY" stays whole.
+      const comma = trimmed.indexOf(", ");
+      if (comma > 0) {
+        const left = trimmed.slice(0, comma);
+        const right = trimmed.slice(comma + 2);
+        if ((DEGREE.test(left) && SCHOOL_WORD.test(right)) || (SCHOOL_WORD.test(left) && DEGREE.test(right))) {
+          candidates.push(left, right);
+          continue;
+        }
       }
+      candidates.push(trimmed);
     }
   });
 

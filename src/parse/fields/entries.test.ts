@@ -91,6 +91,22 @@ Northwind Freight, Chicago, IL
     expect(entry.value.location).toBe("Remote");
   });
 
+  it("does not read 'Systems Administrator' as a company because of 'Systems'", () => {
+    const entry = parseExperienceEntry(
+      linesFromText("Initech\nSystems Administrator\nJun 2016 – Jul 2018 · Milwaukee, WI\n• Managed Linux fleet configuration with Ansible."),
+      0,
+    );
+    expect(entry.value.role).toBe("Systems Administrator");
+    expect(entry.value.company).toBe("Initech");
+    expect(entry.value.location).toBe("Milwaukee, WI");
+  });
+
+  it("does not mistake 'Company, Remote' for a place", () => {
+    const entry = parseExperienceEntry(linesFromText("Site Reliability Engineer Aug 2018 – Feb 2021\nHalcyon Pay, Remote\n• Did things."), 1);
+    expect(entry.value.company).toBe("Halcyon Pay");
+    expect(entry.value.location).toBe("Remote");
+  });
+
   it("keys confidence by entry index so the review form can flag one job", () => {
     const entry = parseExperienceEntry(linesFromText("Engineer\nAcme Inc. | 2020 - 2021"), 3);
     expect(Object.keys(entry.confidence)).toContain("experience.3.role");
@@ -148,6 +164,15 @@ Languages: Go, Python`),
     expect(result.value).toEqual([
       { category: "Cloud", items: ["AWS", "IAM", "KMS", "Secrets Manager", "Terraform"] },
       { category: "Languages", items: ["Go", "Python"] },
+    ]);
+  });
+
+  it("reads a one-per-line list under a label when the vocabulary can tell them apart", () => {
+    const vocabulary = vocabularyFrom(["typescript", "javascript", "css", "react"]);
+    const result = parseSkills(linesFromText("Languages\nTypeScript\nJavaScript\nCSS\nFrameworks\nReact"), vocabulary);
+    expect(result.value).toEqual([
+      { category: "Languages", items: ["TypeScript", "JavaScript", "CSS"] },
+      { category: "Frameworks", items: ["React"] },
     ]);
   });
 

@@ -18,6 +18,13 @@ import { DATE_RANGE, isBulletLine } from "./text";
  */
 const EDGE_TOLERANCE = 3;
 
+/**
+ * A hanging indent is a few tens of points. Past this the line is in
+ * another column: the last bullet of a main column once swallowed the
+ * sidebar's first heading, 370pt to its right, as its own wrapped tail.
+ */
+const MAX_HANGING_INDENT = 48;
+
 const ENDS_SENTENCE = /[.!?;:]["')\]]?\s*$/;
 
 /** A title between bullet groups is a few words; a wrapped tail can be long. */
@@ -57,11 +64,16 @@ function continues(
 ): boolean {
   if (isBulletLine(line.text)) return false;
   if (DATE_RANGE.test(line.text)) return false;
-  if (line.y - before.y > Math.max(line.height, before.height) * MAX_CONTINUATION_GAP_RATIO) return false;
+  const gap = line.y - before.y;
+  // A continuation is below the line it continues. A line above it — the
+  // top of the next column — is the start of something else.
+  if (gap < 0) return false;
+  if (gap > Math.max(line.height, before.height) * MAX_CONTINUATION_GAP_RATIO) return false;
 
   if (hasGeometry) {
     const indent = line.x - previous.x;
     if (indent < -EDGE_TOLERANCE) return false;
+    if (indent > MAX_HANGING_INDENT) return false;
     if (indent > EDGE_TOLERANCE) return true;
   }
 

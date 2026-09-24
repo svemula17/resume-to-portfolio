@@ -24,6 +24,16 @@ describe("parseName", () => {
     expect(result.value).toBe("Jane Doe");
   });
 
+  it("never takes a job title for the name, however loudly it is set", () => {
+    const result = parseName(linesFromText("Marcus Adeyemi\nSITE RELIABILITY ENGINEER\nmarcus@example.com"));
+    expect(result.value).toBe("Marcus Adeyemi");
+  });
+
+  it("rejoins a name wrapped at its hyphen", () => {
+    const result = parseName(linesFromText("Elena Vasquez-\nMoreno\nData Engineering Lead"));
+    expect(result.value).toBe("Elena Vasquez-Moreno");
+  });
+
   it("returns undefined rather than guessing from an empty preamble", () => {
     expect(parseName([]).value).toBeUndefined();
   });

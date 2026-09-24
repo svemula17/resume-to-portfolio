@@ -11,6 +11,13 @@ import type { SkillGroup } from "../../schema/resume";
 import { isBulletLine, stripBullet } from "../text";
 
 /**
+ * Words a category label is made of. A short line that is one of these
+ * over a list — delimited or one per line — names the group beneath it.
+ */
+const CATEGORY_WORD =
+  /^(?:core\s+)?(?:languages?|frameworks?|libraries|tools?|tooling|platforms?|cloud|data|databases?|devops|infrastructure|frontend|backend|full[\s-]?stack|mobile|testing|qa|security|observability|monitoring|analytics|ml|machine learning|ai|design|leadership|management|soft skills|methodologies|practices|technologies|technical|other|misc(?:ellaneous)?|certifications?|domains?)(?:\s*&\s*\w+)?$/i;
+
+/**
  * A label is short and ends in a colon. Requiring the colon is what keeps
  * "Python, Go, TypeScript" from being read as a category named "Python".
  */
@@ -69,9 +76,70 @@ export function parseSkills(
   const raw: Array<{ category?: string; text: string }> = [];
   let open: { category?: string; text: string } | null = null;
 
-  for (const line of lines) {
-    const text = isBulletLine(line.text) ? stripBullet(line.text) : line.text.trim();
+  const flat: string[] = [];
+  let pendingLabel: string | null = null;
+  const isListLine = (candidate: Line | undefined): boolean => {
+    if (!candidate) return false;
+    if (candidate.items.length >= 2 && candidate.items.every((item) => item.str.trim().length <= 30)) return true;
+    return candidate.text.split(/[,;|•·]/).filter((part) => part.trim()).length >= 2;
+  };
+  const isShortLine = (candidate: string): boolean =>
+    !/[,;:|•·]/.test(candidate) && candidate.split(/\s+/).length <= 3 && candidate.length <= 30;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index]!;
+    let text = isBulletLine(line.text) ? stripBullet(line.text) : line.text.trim();
     if (text === "") continue;
+    const next = lines[index + 1];
+
+    // A comma list that wrapped: the previous line ended mid-list, so this
+    // line continues it whatever it looks like — "dbt" alone on a line is
+    // the last item, not the next category.
+    if (open && /,\s*$/.test(open.text)) {
+      open.text = `${open.text} ${text}`;
+      continue;
+    }
+
+    // Which short lines are category labels and which are skills.
+    //
+    // "Languages" over "Go, Python" is a label: the next line is a list.
+    // "Languages" over "TypeScript" over "CSS" is a label over a one-per-
+    // line list, and only a category word or the vocabulary can tell the
+    // label from the first item. Without either signal a short line is a
+    // skill, because a lost label costs a category and a lost skill costs
+    // the skill.
+    const shortLine = isShortLine(text) && line.items.length === 1;
+    if (pendingLabel !== null && shortLine) {
+      open = { category: pendingLabel, text };
+      raw.push(open);
+      pendingLabel = null;
+      continue;
+    }
+    if (pendingLabel !== null) {
+      text = `${pendingLabel}: ${text}`;
+      pendingLabel = null;
+    } else if (shortLine) {
+      const nextText = next?.text.trim() ?? "";
+      // A term the vocabulary knows is a skill, whatever follows it: "CSS"
+      // wrapped onto its own line above the next group is not that group's
+      // label.
+      const known = vocabulary?.has(text) === true;
+      const labelByShape = !known && isListLine(next);
+      const labelByWord = !known && CATEGORY_WORD.test(text) && nextText !== "";
+      const labelByVocabulary =
+        vocabulary !== undefined && !vocabulary.has(text) && isShortLine(nextText) && vocabulary.has(nextText);
+      if (labelByShape || labelByWord || labelByVocabulary) {
+        pendingLabel = text;
+        continue;
+      }
+      if (open && open.category) {
+        // Another item of the one-per-line group above.
+        open.text = `${open.text}, ${text}`;
+        continue;
+      }
+      flat.push(...splitSkillItems(text));
+      continue;
+    }
 
     const labelled = LABELLED.exec(text);
     if (labelled) {
@@ -95,13 +163,15 @@ export function parseSkills(
   }
 
   const groups: SkillGroup[] = [];
-  const flat: string[] = [];
   for (const group of raw) {
     const items = splitSkillItems(group.text);
     if (items.length === 0) continue;
     if (group.category) groups.push({ category: group.category, items });
     else flat.push(...items);
   }
+
+  // A label with no list after it was a lone skill after all.
+  if (pendingLabel !== null) flat.push(pendingLabel);
 
   // Loose items become one uncategorised group rather than being dropped or
   // forced under the last label they happened to follow.

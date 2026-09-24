@@ -47,7 +47,8 @@ describe("groupIntoLines", () => {
     const lines = groupIntoLines(page(items));
 
     expect(lines[0]!.items).toHaveLength(2);
-    expect(lines[0]!.text).toBe("Acme Corporation Jan 2020 - Present");
+    // A cell gap survives as three spaces, the delimiter the parser uses.
+    expect(lines[0]!.text).toBe("Acme Corporation   Jan 2020 - Present");
   });
 
   it("groups items sharing a baseline and orders lines top to bottom", () => {

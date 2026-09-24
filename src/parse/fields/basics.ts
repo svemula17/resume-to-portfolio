@@ -17,6 +17,7 @@ import {
   URL,
   US_LOCATION,
 } from "../text";
+import { ROLE_WORDS } from "./experience";
 
 /**
  * The name scoring table from the spec.
@@ -44,6 +45,9 @@ export const NAME_FEATURES: Feature<string>[] = [
   feature("contains a pipe", -3, (text) => text.includes("|")),
   // A name is short. Anything long is a summary sentence that drifted up.
   feature("longer than 40 chars", -3, (text) => text.length > 40),
+  // "SITE RELIABILITY ENGINEER" under the name, set in tracked capitals,
+  // out-scored the name on caps alone. Nobody is called Engineer.
+  feature("contains a job-title word", -5, (text) => ROLE_WORDS.test(text)),
 ];
 
 export interface FieldResult<T> {
@@ -65,7 +69,21 @@ const MISSING: FieldResult<never> = { value: undefined, confidence: 0 };
  * candidates that can beat it by accident.
  */
 export function parseName(preamble: Line[]): FieldResult<string> {
-  const candidates = preamble.slice(0, 4).map((line) => line.text.trim()).filter(Boolean);
+  // A long hyphenated name wraps at the hyphen in a narrow sidebar:
+  // "Elena Vasquez-" over "Moreno". Rejoined before scoring, or the parser
+  // keeps half a name with a trailing hyphen.
+  const texts = preamble.slice(0, 5).map((line) => line.text.trim()).filter(Boolean);
+  const candidates: string[] = [];
+  for (let i = 0; i < texts.length && candidates.length < 4; i += 1) {
+    const text = texts[i]!;
+    const next = texts[i + 1];
+    if (text.endsWith("-") && next && /^[A-Z][a-zA-Z']+$/.test(next)) {
+      candidates.push(text + next);
+      i += 1;
+    } else {
+      candidates.push(text);
+    }
+  }
   const winner = pickBest(candidates, NAME_FEATURES);
   if (!winner) return MISSING;
 
@@ -193,17 +211,28 @@ export function parseTitle(preamble: Line[], name: string | undefined): FieldRes
   return found(text, 0.7);
 }
 
-/** Assemble the whole basics block, with a confidence per field. */
-export function parseBasics(preamble: Line[]): {
+/**
+ * Assemble the whole basics block, with a confidence per field.
+ *
+ * Name and title come from the preamble — the lines above the first
+ * heading, where every layout puts the name. Contact details come from
+ * the preamble plus any section headed "Contact": sidebar templates put
+ * email and phone under their own heading, often after the whole main
+ * column in reading order.
+ */
+export function parseBasics(
+  preamble: Line[],
+  contactLines: Line[] = preamble,
+): {
   basics: Basics;
   confidence: Record<string, number>;
 } {
   const name = parseName(preamble);
   const title = parseTitle(preamble, name.value);
-  const email = parseEmail(preamble);
-  const phone = parsePhone(preamble);
-  const location = parseLocation(preamble);
-  const links = parseLinks(preamble);
+  const email = parseEmail(contactLines);
+  const phone = parsePhone(contactLines);
+  const location = parseLocation(contactLines);
+  const links = parseLinks(contactLines);
 
   const confidence: Record<string, number> = {
     "basics.name": name.confidence,

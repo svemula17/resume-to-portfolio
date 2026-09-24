@@ -32,6 +32,8 @@ import {
 import { splitIntoEntries, splitWhere } from "./subsections";
 import { DATE_RANGE, isBulletLine } from "./text";
 import { markIndentedBullets } from "./indent";
+import { mergeRailDates } from "./rail";
+import { detrackLines } from "./tracking";
 import { mergeWrappedLines } from "./wrap";
 
 export type { Section, SectionKind } from "./sections";
@@ -55,10 +57,32 @@ export { linesFromText } from "./from-text";
  * result is on screen to be judged. The main parse path never passes it, so
  * every fixture is byte-for-byte unaffected.
  */
-export function entriesOf(lines: Line[], options: { loose?: boolean } = {}): Line[][] {
+export function entriesOf(
+  lines: Line[],
+  options: { loose?: boolean; titled?: boolean } = {},
+): Line[][] {
   const entries = splitIntoEntries(lines);
   const dateLines = lines.map((line) => DATE_RANGE.test(line.text));
   const dateRanges = dateLines.filter(Boolean).length;
+
+  // Projects carry no dates, so when whitespace finds one entry the only
+  // remaining signal is shape: a short title line with no full stop, right
+  // after a line that ended a sentence, starts a new project.
+  if (options.titled && entries.length === 1 && lines.length > 2) {
+    const split = splitWhere(lines, (line, index) => {
+      const above = lines[index - 1];
+      const aboveEnded = above !== undefined && (/[.!?]["')]?\s*$/.test(above.text) || LABEL_LINE.test(above.text));
+      return (
+        aboveEnded &&
+        line.text.length <= 60 &&
+        !/[.!?]\s*$/.test(line.text) &&
+        !isBulletLine(line.text) &&
+        // "Technologies: Python" is the tail of a project, not the next one.
+        !LABEL_LINE.test(line.text)
+      );
+    });
+    if (split.length > 1) return split;
+  }
 
   if (options.loose && entries.length === 1) {
     const split = splitWhere(
@@ -131,8 +155,12 @@ function summaryOf(sections: Section[]): string | undefined {
     .replace(/\s+/g, " ");
 }
 
+/** "Technologies: …", "Tech: …" — a labelled tail line inside an entry. */
+const LABEL_LINE = /^[A-Za-z][A-Za-z ]{1,24}:/;
+
 /** Section kinds a field parser consumes. Everything else is leftover. */
 const PARSED_KINDS = new Set<string>([
+  "contact",
   "summary",
   "experience",
   "education",
@@ -152,11 +180,15 @@ export interface ParseOptions {
 
 /** Parse lines that are already in reading order. */
 export function parseLines(rawLines: Line[], options: ParseOptions = {}): ParseResult {
-  const lines = mergeWrappedLines(markIndentedBullets(rawLines));
+  const lines = mergeWrappedLines(markIndentedBullets(mergeRailDates(detrackLines(rawLines))));
   const sections = splitIntoSections(lines);
   const confidence: ConfidenceMap = {};
 
-  const { basics, confidence: basicsConfidence } = parseBasics(preambleOf(sections));
+  const preamble = preambleOf(sections);
+  const { basics, confidence: basicsConfidence } = parseBasics(preamble, [
+    ...preamble,
+    ...linesOfKind(sections, "contact"),
+  ]);
   Object.assign(confidence, basicsConfidence);
 
   const summary = summaryOf(sections);
@@ -180,7 +212,7 @@ export function parseLines(rawLines: Line[], options: ParseOptions = {}): ParseR
   const skills = parseSkills(linesOfKind(sections, "skills"), options.vocabulary);
   Object.assign(confidence, skills.confidence);
 
-  const projects = entriesOf(linesOfKind(sections, "projects")).map((entry, index) => {
+  const projects = entriesOf(linesOfKind(sections, "projects"), { titled: true }).map((entry, index) => {
     const parsed = parseProjectEntry(entry, index);
     Object.assign(confidence, parsed.confidence);
     return parsed.value;

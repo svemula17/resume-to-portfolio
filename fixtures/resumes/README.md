@@ -2,6 +2,12 @@
 
 Drop resume PDFs and DOCX files in this directory.
 
+> There is also a **scored synthetic corpus** in `../corpus/` — invented
+> people through seven real-world layouts, scored automatically against
+> known truth with `npm run corpus:score`. It found most of the parser's
+> defects. It cannot find the ones only real files have; that is what this
+> directory is for.
+
 The files themselves are gitignored — they are personal documents, and a
 public repository is the wrong place for other people's phone numbers. Only
 this README is tracked.

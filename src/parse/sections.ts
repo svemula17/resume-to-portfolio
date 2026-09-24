@@ -22,6 +22,7 @@ export type SectionKind =
   | "languages"
   | "interests"
   | "references"
+  | "contact"
   | "unknown";
 
 /**
@@ -90,6 +91,13 @@ const HEADINGS: Record<string, SectionKind> = {
   volunteer: "volunteer",
   "volunteer experience": "volunteer",
   volunteering: "volunteer",
+
+  contact: "contact",
+  "contact details": "contact",
+  "contact information": "contact",
+  "contact info": "contact",
+  "get in touch": "contact",
+  details: "contact",
 
   languages: "languages",
   interests: "interests",
@@ -178,21 +186,60 @@ export interface HeadingHit {
   text: string;
 }
 
+/**
+ * "Go, Python, TypeScript" — or a row of skill pills, which arrive as
+ * several items on one line — the line under a skills category label.
+ */
+function looksLikeSkillList(line: Line | undefined): boolean {
+  if (!line) return false;
+  if (line.items.length >= 2 && line.items.every((item) => item.str.trim().length <= 30)) return true;
+  const items = line.text.split(/[,;|•·]/).map((part) => part.trim()).filter(Boolean);
+  return items.length >= 2 && items.every((item) => item.length <= 40);
+}
+
+/**
+ * Heading words that sidebar templates also use as skill category labels.
+ * "Languages" over "Go, Python" is a label; "PROJECTS" over a project line
+ * is a heading, whatever follows it — which is why this is a short list
+ * and not every kind.
+ */
+const LABEL_KINDS = new Set<SectionKind>(["languages", "interests"]);
+
 /** Every line that looks like a section heading, in document order. */
 export function findHeadings(lines: Line[]): HeadingHit[] {
   const hits: HeadingHit[] = [];
+  let current: SectionKind | null = null;
 
   lines.forEach((line, index) => {
     const keyword = matchHeadingKeyword(line.text);
     if (keyword) {
-      hits.push({ index, kind: keyword, text: line.text });
-      return;
+      // Inside a skills section, a one-word line over a comma list is a
+      // category label — "Languages" above "Go, Python" — not the start of
+      // a Languages section, even though the table knows the word.
+      // A one-per-line list under the label ("Languages" / "TypeScript" /
+      // "CSS") shows as a short line rather than a delimited one.
+      const next = lines[index + 1];
+      const nextIsShort = next !== undefined && next.text.trim().split(/\s+/).length <= 3 && next.text.length <= 30;
+      const isCategoryLabel =
+        current === "skills" &&
+        LABEL_KINDS.has(keyword) &&
+        !/\s/.test(line.text.trim()) &&
+        (looksLikeSkillList(next) || nextIsShort);
+      if (!isCategoryLabel) {
+        hits.push({ index, kind: keyword, text: line.text });
+        current = keyword;
+        return;
+      }
     }
+    // Inside a skills section, "CSS", "AWS", "SQL" and "Go" are skills. A
+    // structural heading needs more letters than an acronym has.
+    if (current === "skills" && line.text.trim().length <= 4) return;
     if (isStructuralHeading(line, index)) {
       // Unknown kind: the heading is real, but nothing maps it to a field
       // parser. Its content is preserved and shown in the review form rather
       // than silently dropped.
       hits.push({ index, kind: "unknown", text: line.text });
+      current = "unknown";
     }
   });
 

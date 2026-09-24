@@ -18,20 +18,26 @@ import { findDateRange, stripDateRange } from "./dates";
  * Role titles carry seniority words and rarely carry a suffix. Where both
  * share a line, the delimiter usually separates them.
  */
-const ROLE_WORDS =
+export const ROLE_WORDS =
   /\b(engineer|developer|analyst|manager|director|architect|consultant|designer|scientist|administrator|specialist|lead|head|intern|associate|officer|president|founder|researcher|technician)\b/i;
 
 const SENIORITY = /\b(senior|staff|principal|junior|lead|chief|head|vp|vice president|sr\.?|jr\.?)\b/i;
 
+/**
+ * A legal or house-style suffix, at the end of the name — "Cisco Systems",
+ * "Acme Inc., Austin, TX", "Initech Labs (Remote)". Anchored, because
+ * "Systems Administrator" contains the word and is a job title; unanchored
+ * it out-scored the actual company on the line above it.
+ */
 const COMPANY_SUFFIX =
-  /\b(inc\.?|llc|ltd\.?|corp\.?|corporation|gmbh|plc|co\.?|company|technologies|solutions|systems|labs|group|holdings|partners|consulting|university|institute)\b/i;
+  /\b(inc\.?|llc|ltd\.?|corp\.?|corporation|gmbh|plc|co\.?|company|technologies|solutions|systems|labs|group|holdings|partners|consulting|university|institute)\b\.?(?:\s*\(.*\)|,\s*.*)?$/i;
 
 /**
  * A heading fragment, with where it came from. Position turns out to be as
  * informative as content: the company is almost always on the line that
  * carries the dates, and the role is almost always the first thing written.
  */
-interface Candidate {
+export interface Candidate {
   text: string;
   lineIndex: number;
   partIndex: number;
@@ -40,14 +46,26 @@ interface Candidate {
 
 const REMOTE = /\b(remote|hybrid|on-?site|wfh)\b/i;
 
+/** Countries and regions that stand alone as a location before "(Remote)". */
+const REGION = /^(?:united states|usa|u\.s\.a?\.?|united kingdom|uk|canada|india|germany|france|australia|europe|emea|apac|worldwide|global)$/i;
+
 function isOnlyLocation(text: string): boolean {
+  // "Halcyon Pay, Remote" matches the City, Country shape and is a company
+  // with a work arrangement. Take the arrangement off first; what is left
+  // is a location only if it is one on its own.
+  const arrangement = /^(.*?)[\s,]*\(?\b(remote|hybrid|on-?site)\b\)?\s*$/i.exec(text);
+  if (arrangement) {
+    const rest = arrangement[1]!.replace(/[\s,]+$/, "").trim();
+    if (rest === "") return true;
+    return REGION.test(rest) || US_LOCATION.test(rest) || INTL_LOCATION.test(rest);
+  }
   const stripped = text.replace(/[()]/g, "").trim();
   const match = US_LOCATION.exec(stripped) ?? INTL_LOCATION.exec(stripped);
   if (match && match[0].length >= stripped.length - 2) return true;
   return REMOTE.test(stripped) && stripped.length <= 30;
 }
 
-const ROLE_FEATURES: Feature<Candidate>[] = [
+export const ROLE_FEATURES: Feature<Candidate>[] = [
   feature("contains a role word", 4, ({ text }) => ROLE_WORDS.test(text)),
   feature("contains a seniority word", 2, ({ text }) => SENIORITY.test(text)),
   feature("is the first fragment", 1, ({ lineIndex, partIndex }) => lineIndex === 0 && partIndex === 0),
@@ -69,7 +87,7 @@ function looksLikeList(text: string): boolean {
   return /,.*,/.test(withoutLocation) || /,\s*\S+,/.test(withoutLocation);
 }
 
-const COMPANY_FEATURES: Feature<Candidate>[] = [
+export const COMPANY_FEATURES: Feature<Candidate>[] = [
   feature("contains a company suffix", 4, ({ text }) => COMPANY_SUFFIX.test(text)),
   feature("looks like a comma list", -4, ({ text }) => looksLikeList(text)),
   // The strongest structural signal there is: templates put the dates on the
@@ -84,6 +102,11 @@ const COMPANY_FEATURES: Feature<Candidate>[] = [
   feature("contains a role word", -3, ({ text }) => ROLE_WORDS.test(text)),
   feature("very long", -3, ({ text }) => text.length > 70),
 ];
+
+/** Long, and ends a sentence: a bullet with no marker of any kind. */
+function isProse(text: string): boolean {
+  return text.length > 40 && /[.!?]["')]?\s*$/.test(text);
+}
 
 /** Split "Datadog -- United States (Remote)" into company and location. */
 const HEADING_DELIMITER = /\s+(?:--|—|–|\||·|•)\s+|\s{3,}/;
@@ -123,11 +146,14 @@ export function parseExperienceEntry(lines: Line[], index: number): ParsedEntry<
   const prefix = `experience.${index}`;
   const confidence: Record<string, number> = {};
 
-  const bullets = lines
-    .filter((line) => isBulletLine(line.text))
-    .map((line) => stripBullet(line.text));
+  // A bullet is a bullet by its glyph, by its indent (recovered upstream),
+  // or — in layouts that set bullets as plain paragraphs at the content
+  // edge, with neither — by being a sentence. A role, company or date line
+  // is a fragment; a bullet is a full stop.
+  const isBullet = (line: Line): boolean => isBulletLine(line.text) || isProse(line.text);
+  const bullets = lines.filter(isBullet).map((line) => stripBullet(line.text));
 
-  const headingLines = lines.filter((line) => !isBulletLine(line.text));
+  const headingLines = lines.filter((line) => !isBullet(line));
 
   const range = findDateRange(headingLines);
   if (range) {

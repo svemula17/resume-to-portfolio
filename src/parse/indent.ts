@@ -14,7 +14,7 @@
  * a column's margin — and it is not the continuation of the line above it.
  */
 import type { Line } from "../layout";
-import { isBulletLine } from "./text";
+import { DATE_RANGE, isBulletLine } from "./text";
 
 /** A list indent is at least this; a hanging indent for wrapped text is less. */
 const MIN_INDENT = 8;
@@ -79,7 +79,11 @@ export function markIndentedBullets(lines: Line[]): Line[] {
     const base = indentBase(line.x, edges);
     let marked = line;
 
-    if (base !== null && !isBulletLine(line.text)) {
+    // A line with a cell gap is a row of a table or a rail, and a line that
+    // opens with a date range is an entry heading; neither is prose, and a
+    // bullet is prose.
+    const isRow = /\s{3}/.test(line.text) || DATE_RANGE.test(line.text.slice(0, 40));
+    if (base !== null && !isBulletLine(line.text) && !isRow) {
       // The run's right margin is unknown in general; the best local proxy
       // is the widest line seen so far in this indent run.
       const continuation =

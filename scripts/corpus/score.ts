@@ -24,8 +24,10 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { loadVocabulary } from "../../src/data/vocabulary";
 import { toReadingOrder } from "../../src/layout/index";
 import { parseLines } from "../../src/parse/index";
+import { detrackLines } from "../../src/parse/tracking";
 import type { Page, TextItem } from "../../src/extract/types";
 import type { Resume } from "../../src/schema/resume";
 import type { CorpusEntry, SectionId } from "./types";
@@ -71,6 +73,8 @@ function norm(text: string | undefined): string {
     .replace(/[–—−]/g, "-")
     .replace(/[^a-z0-9+#./@ -]/g, " ")
     .replace(/\s+/g, " ")
+    // A word wrapped at its hyphen — "Vasquez- Moreno" — is the same word.
+    .replace(/- /g, "-")
     .trim();
 }
 
@@ -281,12 +285,18 @@ if (entries.length === 0) {
   process.exit(1);
 }
 
+// The parser gets the vocabulary in the product; it gets it here too.
+const vocabulary = await loadVocabulary();
+
 const rows: Row[] = [];
 for (const entry of entries) {
   const pages = await extract(join(DIR, `${entry.id}.pdf`));
   const lines = toReadingOrder(pages);
-  const text = lines.map((line) => line.text).join("\n");
-  const parsed = parseLines(lines).data;
+  // Reading order is judged on the text after tracking is undone, which is
+  // the parser's first step and purely textual; a tracked title is not a
+  // layout error.
+  const text = detrackLines(lines).map((line) => line.text).join("\n");
+  const parsed = parseLines(lines, { vocabulary }).data;
   const order = readingOrderScore(text, units(entry.truth, entry.sectionOrder));
   const fields = fieldScore(parsed, entry.truth);
   const { toPageReadingOrders } = await import("../../src/layout/index");

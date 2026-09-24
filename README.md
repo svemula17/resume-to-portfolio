@@ -172,7 +172,9 @@ belong to nothing.
 
 ### Layouts this is expected to fail on
 
-Known and accepted, in rough order of how often you will hit them:
+Measured on the corpus: none of the seven families below 97% reading
+order. Known and accepted beyond it, in rough order of how often you will
+hit them:
 
 - **Three or more columns.** Detection finds one gutter and stops. A
   three-column page will split into "left" and "everything else".
@@ -357,6 +359,39 @@ A blob-URL iframe with `sandbox=""`: no scripts, no same-origin, no
 navigation, no forms. The site has no scripts, so `allow-scripts` is not
 needed — and it must never be combined with `allow-same-origin`, which
 would let a sandboxed script reach the parent origin.
+
+## The scored corpus
+
+`fixtures/corpus/` holds twenty-one PDFs: three invented people rendered
+through seven layouts that imitate real templates — the Word classic, the
+ATS-safe plain document, a dense paid-builder column, a timeline with a date
+rail, a full-width header over two columns, and sidebars left and right —
+printed by headless Chrome, so the text layer has the properties real
+exports have (no bullet glyphs, tracked headings, kerned pairs glued).
+
+Every PDF is scored by running the real pipeline and comparing to the
+resume it was rendered from. The truth is known, so scoring is automatic:
+
+```bash
+npm run corpus:score       # scoreboard → fixtures/corpus/SCOREBOARD.md
+npm run corpus:build       # regenerate the PDFs (needs Chrome)
+```
+
+| Family | Entries | Reading order | Fields |
+| --- | --- | --- | --- |
+| single-column | 12 | 100% (gate 90%) | 99% |
+| two-column | 9 | 100% (gate 60%) | 99% |
+
+Reading order is the build plan's go/no-go gate; both families pass it with
+room. The corpus is what found every parser defect fixed since stage 2 —
+browser-printed bullets with no glyph, letter-spaced headings, a hyphenated
+name wrapping in a sidebar, "Systems Administrator" scoring as a company —
+none of which a hand-built PDF or a real single-column resume had shown.
+
+What it cannot show: how real resumes differ from these. The people and
+layouts are invented; real PDFs from real tools will fail in ways this
+corpus never exercises. Drop those into `fixtures/resumes/` and score by
+hand, as the plan says.
 
 ## Build plan
 
