@@ -393,3 +393,18 @@ Two traps worth knowing about before contributing:
   redistribution and cannot be relicensed. SkillNer is MIT *code* wrapping
   non-permissive *data*. Use O*NET (CC BY 4.0, attribution required), GitHub
   Linguist (MIT) and devicon (MIT) instead.
+
+The skills vocabulary in `src/data/skills.json` is built from exactly those
+three by `npm run skills:build` (`scripts/build-skills.mjs`, no dependencies,
+run by hand and committed so a deploy never depends on a third-party host).
+It merges O*NET 29.1 "Technology Skills", the language names and aliases from
+GitHub Linguist's `languages.yml`, and the icon names and alternates from
+devicon's `devicon.json`, normalised to lowercase with O*NET's "software"
+suffix stripped. The JSON carries its own `sources` block, and the same three
+attributions are in [`NOTICE`](NOTICE) at the repo root; the O*NET one must
+appear wherever the data does. In full: "This product includes information
+from the O*NET 29.1 Database by the U.S. Department of Labor, Employment and
+Training Administration (USDOL/ETA). Used under the CC BY 4.0 license. O*NET®
+is a trademark of USDOL/ETA." GitHub Linguist is copyright (c) 2017 GitHub,
+Inc., and devicon is copyright (c) 2015 Konpa and contributors, both under the
+MIT License.

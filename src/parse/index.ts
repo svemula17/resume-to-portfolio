@@ -8,6 +8,7 @@
  * layout" into "the app is broken", and the whole product premise is that the
  * parser is allowed to be weak.
  */
+import type { Vocabulary } from "../data/vocabulary";
 import type { Line } from "../layout";
 import {
   ResumeSchema,
@@ -104,8 +105,17 @@ const PARSED_KINDS = new Set<string>([
   "certifications",
 ]);
 
+export interface ParseOptions {
+  /**
+   * The skills vocabulary, when it has been loaded. Optional so the parser
+   * stays synchronous and usable without it; the only effect is that a flat
+   * skills list made of known terms is not flagged for review.
+   */
+  vocabulary?: Vocabulary;
+}
+
 /** Parse lines that are already in reading order. */
-export function parseLines(rawLines: Line[]): ParseResult {
+export function parseLines(rawLines: Line[], options: ParseOptions = {}): ParseResult {
   const lines = mergeWrappedLines(rawLines);
   const sections = splitIntoSections(lines);
   const confidence: ConfidenceMap = {};
@@ -131,7 +141,7 @@ export function parseLines(rawLines: Line[]): ParseResult {
     return parsed.value;
   });
 
-  const skills = parseSkills(linesOfKind(sections, "skills"));
+  const skills = parseSkills(linesOfKind(sections, "skills"), options.vocabulary);
   Object.assign(confidence, skills.confidence);
 
   const projects = entriesOf(linesOfKind(sections, "projects")).map((entry, index) => {
@@ -191,6 +201,6 @@ export function parseLines(rawLines: Line[]): ParseResult {
 }
 
 /** Parse raw text — the DOCX path, or pasted text. */
-export function parseText(text: string): ParseResult {
-  return parseLines(linesFromText(text));
+export function parseText(text: string, options: ParseOptions = {}): ParseResult {
+  return parseLines(linesFromText(text), options);
 }

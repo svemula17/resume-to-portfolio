@@ -1,0 +1,18 @@
+resume-to-portfolio bundles skill vocabulary data derived from the following
+sources. Their licences apply to that data (src/data/skills.json) in addition
+to the MIT licence that covers this project's own code.
+
+O*NET 29.1 Database — Technology Skills
+https://www.onetcenter.org/dl_files/database/db_29_1_text/Technology%20Skills.txt
+Licence: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+This product includes information from the O*NET 29.1 Database by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the CC BY 4.0 license. O*NET® is a trademark of USDOL/ETA.
+
+GitHub Linguist — lib/linguist/languages.yml
+https://github.com/github-linguist/linguist
+Licence: MIT
+Copyright (c) 2017 GitHub, Inc. Licensed under the MIT License.
+
+devicon — devicon.json
+https://github.com/devicons/devicon
+Licence: MIT
+Copyright (c) 2015 konpa. Licensed under the MIT License.

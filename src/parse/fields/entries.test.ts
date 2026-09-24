@@ -3,6 +3,7 @@ import { linesFromText } from "../from-text";
 import { parseEducationEntry } from "./education";
 import { parseExperienceEntry } from "./experience";
 import { parseCertificationLine, parseProjectEntry } from "./projects";
+import { vocabularyFrom } from "../../data/vocabulary";
 import { parseSkills, splitSkillItems } from "./skills";
 
 describe("parseExperienceEntry", () => {
@@ -141,6 +142,19 @@ Languages: Go, Python`),
     const result = parseSkills(linesFromText("Go, Python, TypeScript"));
     expect(result.value).toEqual([{ items: ["Go", "Python", "TypeScript"] }]);
     expect(result.confidence["skills.0.items"]).toBeLessThan(0.7);
+  });
+
+  it("trusts a flat list the vocabulary mostly recognises", () => {
+    const vocabulary = vocabularyFrom(["go", "python", "typescript", "kubernetes"]);
+    const known = parseSkills(linesFromText("Go, Python, TypeScript, Kubernetes, Bespoke Internal Tool"), vocabulary);
+    expect(known.confidence["skills.0.items"]).toBeGreaterThanOrEqual(0.6);
+
+    // Prose that split on commas is still a stop.
+    const prose = parseSkills(
+      linesFromText("Detects and mitigates prompt injection, runs security reviews, sets the bar"),
+      vocabulary,
+    );
+    expect(prose.confidence["skills.0.items"]).toBeLessThan(0.6);
   });
 });
 

@@ -8,6 +8,7 @@
  * a page that appears instantly and one that does not. Vite turns each
  * dynamic import into its own chunk with no configuration.
  */
+import { loadVocabulary } from "../data/vocabulary";
 import { detectFormat } from "../extract/format";
 import { toPageReadingOrders } from "../layout";
 import { parseLines, parseText } from "../parse";
@@ -21,12 +22,15 @@ export interface Parsed {
 
 export async function parseFile(file: File): Promise<Parsed> {
   const format = detectFormat(file);
+  // Fetched alongside the extractor, not after it; both are network round
+  // trips on first use and there is no reason to serialise them.
+  const vocabularyPromise = loadVocabulary();
 
   if (format === "docx") {
     const { extractDocxText } = await import("../extract/docx");
-    const text = await extractDocxText(file);
+    const [text, vocabulary] = await Promise.all([extractDocxText(file), vocabularyPromise]);
     return {
-      result: parseText(text),
+      result: parseText(text, { vocabulary }),
       source: { fileName: file.name, format: "docx", text },
     };
   }
@@ -36,10 +40,10 @@ export async function parseFile(file: File): Promise<Parsed> {
   }
 
   const { extractTextItems } = await import("../extract/pdf");
-  const pages = await extractTextItems(file);
+  const [pages, vocabulary] = await Promise.all([extractTextItems(file), vocabularyPromise]);
   const lines = toPageReadingOrders(pages).flatMap((order) => order.lines);
   return {
-    result: parseLines(lines),
+    result: parseLines(lines, { vocabulary }),
     source: {
       fileName: file.name,
       format: "pdf",
@@ -49,9 +53,10 @@ export async function parseFile(file: File): Promise<Parsed> {
 }
 
 /** Pasted text: the path that makes the exit criterion measurable. */
-export function parsePastedText(text: string, fileName = "pasted-resume.txt"): Parsed {
+export async function parsePastedText(text: string, fileName = "pasted-resume.txt"): Promise<Parsed> {
+  const vocabulary = await loadVocabulary();
   return {
-    result: parseText(text),
+    result: parseText(text, { vocabulary }),
     source: { fileName, format: "text", text },
   };
 }
@@ -64,4 +69,5 @@ export function parsePastedText(text: string, fileName = "pasted-resume.txt"): P
 export function warmExtractors(): void {
   void import("../extract/pdf").catch(() => undefined);
   void import("../extract/docx").catch(() => undefined);
+  void loadVocabulary().catch(() => undefined);
 }

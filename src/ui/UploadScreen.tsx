@@ -3,8 +3,9 @@
  *
  * The copy leads with privacy because that is the product. Every rival
  * uploads the resume to a server or an LLM; this one cannot, and the page
- * says so in the first line, then proves it in the footer with the only
- * network request the app ever makes — none.
+ * says so in the first line. The claims below are exact: the page fetches
+ * its own code from its own origin and sends nothing anywhere, and the
+ * content security policy in the built page enforces it.
  *
  * Paste exists for two reasons. It is how the stopwatch protocol runs
  * without a corpus, and it is the fastest path for someone whose resume is
@@ -43,10 +44,15 @@ export function UploadScreen({ onParsed, restoreFailed }: Props) {
     }
   };
 
-  const handleText = () => {
+  const handleText = async () => {
     if (text.trim() === "") return;
     setError(null);
-    onParsed(parsePastedText(text));
+    setBusy(true);
+    try {
+      onParsed(await parsePastedText(text));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -111,12 +117,13 @@ export function UploadScreen({ onParsed, restoreFailed }: Props) {
             className="rf-textarea"
             value={text}
             placeholder="Select all in your resume, copy, paste here."
+            onFocus={warmExtractors}
             onChange={(event) => setText(event.target.value)}
             onKeyDown={(event) => {
-              if ((event.metaKey || event.ctrlKey) && event.key === "Enter") handleText();
+              if ((event.metaKey || event.ctrlKey) && event.key === "Enter") void handleText();
             }}
           />
-          <button type="button" className="rf-btn rf-btn-primary" onClick={handleText} disabled={text.trim() === ""}>
+          <button type="button" className="rf-btn rf-btn-primary" onClick={() => void handleText()} disabled={text.trim() === "" || busy}>
             Parse text
           </button>
         </div>
@@ -150,7 +157,11 @@ export function UploadScreen({ onParsed, restoreFailed }: Props) {
           <h2 id="privacy-h">What "private" means here</h2>
           <ul>
             <li>The file is read by code running in this tab. It is not uploaded anywhere.</li>
-            <li>There are no analytics and no third-party scripts. The page makes no network requests after it loads.</li>
+            <li>
+              There are no analytics and no third-party scripts. The only server this page ever
+              talks to is the one that served it, and only to fetch its own code — never to send
+              anything. The content security policy forbids the rest.
+            </li>
             <li>Your draft is saved in this browser's local storage so a refresh does not lose it. "Start over" deletes it.</li>
             <li>
               The code is open. <a href={REPO_URL} rel="noopener">Read it on GitHub</a>.

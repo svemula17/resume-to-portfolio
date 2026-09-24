@@ -5,6 +5,7 @@
  * ("Languages: Python, Go") and a flat list. Both reduce to the same shape,
  * with `category` simply absent for the flat case.
  */
+import type { Vocabulary } from "../../data/vocabulary";
 import type { Line } from "../../layout";
 import type { SkillGroup } from "../../schema/resume";
 import { isBulletLine, stripBullet } from "../text";
@@ -39,7 +40,25 @@ export function splitSkillItems(text: string): string[] {
     .filter((item) => item.length > 0 && item.length <= 60);
 }
 
-export function parseSkills(lines: Line[]): {
+/**
+ * The share of a flat list that must be known terms before the list is
+ * trusted without a review stop. Prose that happened to split on commas —
+ * "Detects and mitigates prompt injection, runs reviews" — scores near zero
+ * against the vocabulary; a real list of tools scores near one. The bar is
+ * set where a list of mostly niche or in-house names still passes if the
+ * half the vocabulary knows about is there.
+ */
+const KNOWN_SHARE_TO_TRUST = 0.5;
+
+function knownShare(items: string[], vocabulary: Vocabulary): number {
+  if (items.length === 0) return 0;
+  return items.filter((item) => vocabulary.has(item)).length / items.length;
+}
+
+export function parseSkills(
+  lines: Line[],
+  vocabulary?: Vocabulary,
+): {
   value: SkillGroup[];
   confidence: Record<string, number>;
 } {
@@ -92,8 +111,14 @@ export function parseSkills(lines: Line[]): {
   groups.forEach((group, index) => {
     // A labelled group is far stronger evidence than a line that merely split
     // on commas, which is also how a prose sentence would split. The flat
-    // case sits under the review threshold on purpose: it is worth a glance.
-    confidence[`skills.${index}.items`] = group.category ? 0.9 : 0.5;
+    // case sits under the review threshold on purpose: it is worth a glance
+    // — unless the vocabulary recognises most of it, in which case it is a
+    // list of tools and the glance would be a wasted stop.
+    let score = group.category ? 0.9 : 0.5;
+    if (!group.category && vocabulary && knownShare(group.items, vocabulary) >= KNOWN_SHARE_TO_TRUST) {
+      score = 0.8;
+    }
+    confidence[`skills.${index}.items`] = score;
   });
 
   return { value: groups, confidence };
