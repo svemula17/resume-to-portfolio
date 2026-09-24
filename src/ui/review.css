@@ -849,3 +849,102 @@
   border: 1px solid var(--rf-border-strong);
   border-radius: 24px;
 }
+
+/* ---------- Landing ---------- */
+
+.rf-landing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.rf-landing .rf-upload {
+  flex: 1;
+  margin: 3rem auto 2rem;
+}
+
+.rf-eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--rf-muted);
+}
+
+.rf-hero h1 {
+  font-size: clamp(1.6rem, 1.1rem + 2vw, 2.3rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+}
+
+.rf-lede {
+  font-size: 1.05rem;
+  color: var(--rf-text);
+  max-width: 56ch;
+  margin: 0 0 1.75rem;
+}
+
+.rf-dropzone {
+  border-style: dashed;
+  transition: border-color 120ms, background 120ms;
+}
+
+.rf-dropzone-active {
+  border-color: var(--rf-focus);
+  background: var(--rf-flag-bg);
+}
+
+.rf-dropzone .rf-hint {
+  margin: 0 0 0.6rem;
+}
+
+.rf-how,
+.rf-privacy {
+  margin-top: 2.5rem;
+}
+
+.rf-how h2,
+.rf-privacy h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--rf-muted);
+  margin: 0 0 0.75rem;
+}
+
+.rf-how ol,
+.rf-privacy ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--rf-text);
+}
+
+.rf-how li,
+.rf-privacy li {
+  margin: 0.5rem 0;
+  line-height: 1.55;
+}
+
+.rf-how code {
+  font-size: 0.85em;
+}
+
+.rf-footer {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem 2rem;
+  border-top: 1px solid var(--rf-border);
+  font-size: 0.78rem;
+  color: var(--rf-muted);
+  line-height: 1.55;
+}
+
+.rf-footer p {
+  max-width: 640px;
+  margin: 0 auto 0.5rem;
+}
+
+.rf-footer a,
+.rf-privacy a {
+  color: inherit;
+}
