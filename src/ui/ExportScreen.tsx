@@ -40,7 +40,10 @@ export function ExportScreen({ state, dispatch, onBack }: Props) {
     }
   }, [state.resume]);
 
-  const site = useMemo(() => (resume ? renderSite(resume, selected) : null), [resume, selected]);
+  // The visitor's language is unknown; the author's is the best available
+  // guess for <html lang>, and "en" is the fallback the templates use.
+  const lang = useMemo(() => (navigator.language || "en").split("-")[0] || "en", []);
+  const site = useMemo(() => (resume ? renderSite(resume, selected, { lang }) : null), [resume, selected, lang]);
   const preview = useMemo(() => (site ? inlineForPreview(site) : ""), [site]);
 
   const downloadZip = () => {

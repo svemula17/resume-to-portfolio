@@ -5,10 +5,12 @@
  * can be short and the page reads well with no stylesheet at all.
  */
 import type { Resume } from "../../schema/resume";
+import type { RenderOptions } from "../types";
 import { html, join, type Html } from "../escape";
 import {
   contactItems,
   dateSpan,
+  dateText,
   document,
   link,
   metaDescription,
@@ -24,7 +26,7 @@ function header(resume: Resume): Html {
 <header class="masthead">
   <h1>${basics.name}</h1>
   ${basics.title ? html`<p class="role">${basics.title}</p>` : ""}
-  ${contact.length > 0 ? html`<ul class="contact">${contact.map((item) => html`<li>${item}</li>`)}</ul>` : ""}
+  ${contact.length > 0 ? html`<ul class="contact" role="list">${contact.map((item) => html`<li>${item}</li>`)}</ul>` : ""}
 </header>`;
 }
 
@@ -99,18 +101,18 @@ function certifications(resume: Resume): Html {
   return html`
 <section id="certifications" aria-labelledby="certifications-h">
   <h2 id="certifications-h">Certifications</h2>
-  <ul class="certs">
+  <ul class="certs" role="list">
     ${resume.certifications.map(
       (cert) => html`
-    <li>${cert.name ?? "Certification"}${cert.issuer ? html` <span class="muted">· ${cert.issuer}</span>` : ""}${
-      cert.date ? html` <time class="muted">${cert.date}</time>` : ""
+    <li>${cert.name ?? "Certification"}${cert.issuer ? html` <span class="muted">·&nbsp;${cert.issuer}</span>` : ""}${
+      cert.date ? html` ${dateText(cert.date, "muted")}` : ""
     }</li>`,
     )}
   </ul>
 </section>`;
 }
 
-export function render(resume: Resume): string {
+export function render(resume: Resume, options: RenderOptions = {}): string {
   const has = presentSections(resume);
   const sections: Html[] = [];
   if (has.summary) sections.push(html`<section id="about" aria-label="About"><p class="summary">${resume.basics.summary}</p></section>`);
@@ -121,12 +123,15 @@ export function render(resume: Resume): string {
   if (has.certifications) sections.push(certifications(resume));
 
   return document({
+    lang: options.lang,
     title: pageTitle(resume),
     description: metaDescription(resume),
     body: html`
-<main class="page">
+<div class="page">
 ${header(resume)}
+<main>
 ${join(sections, "\n")}
-</main>`,
+</main>
+</div>`,
   });
 }

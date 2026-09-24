@@ -30,6 +30,11 @@ export interface RenderedSite {
   "styles.css": string;
 }
 
+export interface RenderOptions {
+  /** BCP 47 tag for <html lang>. Defaults to "en". */
+  lang?: string;
+}
+
 export interface Template {
   meta: TemplateMeta;
   /**
@@ -38,5 +43,5 @@ export interface Template {
    * still guards every optional field — a section with no entries is
    * simply not rendered.
    */
-  render(resume: Resume): RenderedSite;
+  render(resume: Resume, options?: RenderOptions): RenderedSite;
 }

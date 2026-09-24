@@ -9,5 +9,5 @@ export const minimal: Template = {
     description: "One quiet column. Type does the work; nothing competes with the content.",
     traits: ["Single column", "Serif headings", "Print-first", "Dark mode"],
   },
-  render: (resume) => ({ "index.html": render(resume), "styles.css": css }),
+  render: (resume, options) => ({ "index.html": render(resume, options), "styles.css": css }),
 };

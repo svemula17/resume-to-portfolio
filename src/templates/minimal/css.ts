@@ -173,6 +173,11 @@ a:hover {
   color: var(--muted);
 }
 
+/* An uncategorised group has a hidden dt; its dd takes the whole row. */
+.skills dt.sr-only + dd {
+  grid-column: 1 / -1;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -186,11 +191,14 @@ a:hover {
   html { font-size: 16px; }
   .page { padding-top: 2.5rem; }
   h1 { font-size: 2rem; }
+  .entry-head { flex-direction: column; align-items: flex-start; gap: 0.1rem; }
   .skills { grid-template-columns: 1fr; gap: 0.15rem 0; }
   .skills dd { margin-bottom: 0.6rem; }
 }
 
 @media print {
+  /* Tokens, not just body colour: every muted rule must resolve to ink. */
+  :root { --bg: #fff; --text: #000; --muted: #555; --rule: #999; --accent: #000; }
   html { font-size: 11pt; }
   body { background: #fff; color: #000; }
   .page { max-width: none; padding: 0; }

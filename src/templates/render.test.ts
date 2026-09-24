@@ -57,17 +57,40 @@ describe.each(TEMPLATE_IDS)("template %s", (id) => {
     expect(page).not.toMatch(/Projects|Skills|Education|Certifications/);
   });
 
-  it("escapes every field of the hostile fixture", () => {
+  it("escapes every field of the hostile fixture, in every output file", () => {
     const site = template.render(HOSTILE);
-    for (const file of [site["index.html"], site["styles.css"]]) {
+    // README.md included: it is Markdown, and Markdown is rendered by hosts.
+    for (const file of Object.values(renderSite(HOSTILE, id))) {
       for (const marker of FORBIDDEN_IN_OUTPUT) {
         expect(file).not.toContain(marker);
       }
     }
+    expect(renderSite(HOSTILE, id)["README.md"].split("\n")[0]).not.toMatch(/[<>[\]()!*_`]/);
     // The name still appears — escaped, not dropped.
     expect(site["index.html"]).toContain("&lt;script&gt;alert(1)&lt;/script&gt; Name");
     // A javascript: URL becomes plain text, never an href.
     expect(site["index.html"]).not.toMatch(/href="javascript/i);
+  });
+
+  it("strips bidi overrides and control characters from text", () => {
+    const resume = { ...FULL, basics: { ...FULL.basics, name: "\u202eabc\u0000def\u0007" } };
+    const page = template.render(resume)["index.html"];
+    // eslint-disable-next-line no-control-regex -- asserting their absence
+    expect(page).not.toMatch(/[\u202a-\u202e\u2066-\u2069\u0000-\u0008]/);
+    expect(page).toContain("abcdef");
+  });
+
+  it("uses <time> only for machine-readable dates", () => {
+    const page = template.render(FULL)["index.html"];
+    expect(page).toContain('<time datetime="2022-03">Mar 2022</time>');
+    expect(page).toContain('<time datetime="2019">2019</time>');
+    expect(page).not.toMatch(/<time[^>]*>Present<\/time>/);
+    expect(page).not.toMatch(/<time>/);
+  });
+
+  it("sets the document language from options", () => {
+    expect(template.render(FULL, { lang: "de" })["index.html"]).toContain('<html lang="de">');
+    expect(template.render(FULL)["index.html"]).toContain('<html lang="en">');
   });
 
   it("makes no external requests", () => {

@@ -70,6 +70,18 @@ describe("safeUrl", () => {
   it("returns null for undefined", () => {
     expect(safeUrl(undefined)).toBeNull();
   });
+
+  it("keeps hyphens in domains and rejects a control character anywhere", () => {
+    // A literal NUL in the regex source once read as [ -\s] to tools that
+    // strip controls, which would have rejected every hyphenated domain.
+    expect(safeUrl("https://a-b.com/c-d")).toBe("https://a-b.com/c-d");
+    expect(safeUrl("java\u0001script:x")).toBeNull();
+  });
+
+  it("requires a domain after a scheme-relative prefix", () => {
+    expect(safeUrl("//javascript:alert(1)")).toBeNull();
+    expect(safeUrl("//example.com/x")).toBe("https://example.com/x");
+  });
 });
 
 describe("display helpers", () => {
@@ -80,8 +92,17 @@ describe("display helpers", () => {
   it("mailto and tel validate before linking", () => {
     expect(mailto("sai@example.com")).toBe("mailto:sai@example.com");
     expect(mailto("not an email")).toBeNull();
+    // A mailto with a query would pre-fill the visitor's mail client.
+    expect(mailto("a@b.co?subject=x&body=y")).toBeNull();
+    expect(mailto("a@b.co#x")).toBeNull();
     expect(tel("(917) 516-6967")).toBe("tel:9175166967");
     expect(tel("+1 917 516 6967")).toBe("tel:+19175166967");
+    expect(tel("555-0100 ext. 12")).toBe("tel:5550100");
+    expect(tel("555-0100 x204")).toBe("tel:5550100");
     expect(tel("12")).toBeNull();
+  });
+
+  it("escapeHtml strips controls and bidi overrides", () => {
+    expect(escapeHtml("a\u0000b\u202ec\u2066d\te")).toBe("abcd\te");
   });
 });

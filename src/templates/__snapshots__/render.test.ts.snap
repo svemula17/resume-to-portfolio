@@ -1,0 +1,1368 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`template creative > matches its snapshot 1`] = `
+{
+  "index.html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alex Rivera — Security Engineer</title>
+<meta name="description" content="Security engineer with six years across detection, platform and application security. Builds the tooling, then runs the review.">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="role">Security Engineer</p>
+    <h1>Alex Rivera</h1>
+    <p class="lede">Security engineer with six years across detection, platform and application security. Builds the tooling, then runs the review.</p>
+    <ul class="contact" role="list"><li><a href="mailto:alex@example.com">alex@example.com</a></li><li><a href="tel:4155550142">(415) 555-0142</a></li><li><span>San Francisco, CA</span></li></ul>
+    <ul class="profiles" role="list"><li><a href="https://github.com/arivera" rel="noopener">GitHub</a></li><li><a href="https://linkedin.com/in/alex-rivera-sec" rel="noopener">LinkedIn</a></li><li><a href="https://arivera.dev" rel="noopener">arivera.dev</a></li></ul>
+  </div>
+</header>
+<main class="wrap">
+
+<section id="experience" aria-labelledby="experience-h">
+  <h2 id="experience-h">Experience</h2>
+  <ol class="timeline dated" role="list">
+    
+    <li>
+      <article class="entry">
+        <p class="when"><time datetime="2022-03">Mar 2022</time> – <span>Present</span></p>
+        <h3>Staff Security Engineer</h3>
+        <p class="where">Acme Security&nbsp;<span class="sep">·</span> Remote</p>
+        <ul><li>Built the detection pipeline that catches credential stuffing in under a minute.</li><li>Cut false positives by half by rewriting the scoring model.</li><li>Ran the security review programme for forty services.</li></ul>
+      </article>
+    </li>
+    <li>
+      <article class="entry">
+        <p class="when"><time datetime="2019-06">Jun 2019</time> – <time datetime="2022-02">Feb 2022</time></p>
+        <h3>Platform Engineer</h3>
+        <p class="where">Initech&nbsp;<span class="sep">·</span> Austin, TX</p>
+        <ul><li>Migrated forty services from VMs to Kubernetes.</li><li>On-call lead for the platform tier.</li></ul>
+      </article>
+    </li>
+  </ol>
+</section>
+
+<section id="projects" aria-labelledby="projects-h">
+  <h2 id="projects-h">Projects</h2>
+  <div class="cards">
+    
+    <article class="card">
+      <h3><a href="https://github.com/arivera/vigil" rel="noopener">Vigil</a></h3>
+      <p>A prompt-injection monitor for LLM agents. Flags indirect injections in tool output.</p>
+      <ul class="tags" role="list"><li>Go</li><li>Postgres</li></ul>
+    </article>
+    <article class="card">
+      <h3>Sandbox Harness</h3>
+      <p>Runs untrusted agent tool calls in a sealed container with a syscall allowlist.</p>
+      <ul class="tags" role="list"><li>Rust</li><li>seccomp</li></ul>
+    </article>
+  </div>
+</section>
+
+<section id="skills" aria-labelledby="skills-h">
+  <h2 id="skills-h">Skills</h2>
+  <dl class="skills">
+    
+    <div class="skill-group">
+      <dt>Languages</dt>
+      <dd><ul class="pills" role="list"><li>Python</li><li>Go</li><li>Rust</li><li>TypeScript</li></ul></dd>
+    </div>
+    <div class="skill-group">
+      <dt>Platform</dt>
+      <dd><ul class="pills" role="list"><li>Kubernetes</li><li>Terraform</li><li>AWS</li></ul></dd>
+    </div>
+    <div class="skill-group">
+      <dt class="sr-only">Other</dt>
+      <dd><ul class="pills" role="list"><li>Threat modeling</li><li>Incident response</li></ul></dd>
+    </div>
+  </dl>
+</section>
+
+<section id="education" aria-labelledby="education-h">
+  <h2 id="education-h">Education</h2>
+  
+  <article class="entry plain">
+    <div class="entry-head">
+      <h3>BS Computer Science</h3>
+      <p class="when"><time datetime="2015">2015</time> – <time datetime="2019">2019</time></p>
+    </div>
+    <p class="where">University of Texas at Austin&nbsp;<span class="sep">·</span> GPA 3.8/4.0</p>
+  </article>
+</section>
+
+<section id="certifications" aria-labelledby="certifications-h">
+  <h2 id="certifications-h">Certifications</h2>
+  <ul class="certs" role="list">
+    
+    <li>
+      <span class="cert-name">OSCP</span>&nbsp;<span class="sep">·</span> <span class="muted">OffSec</span> <time datetime="2021" class="muted">2021</time>
+    </li>
+    <li>
+      <span class="cert-name">AWS Certified Security – Specialty</span>&nbsp;<span class="sep">·</span> <span class="muted">Amazon</span> <time datetime="2023" class="muted">2023</time>
+    </li>
+  </ul>
+</section>
+</main>
+</body>
+</html>
+",
+  "styles.css": "/* Creative — Resume → Portfolio */
+
+:root {
+  --bg: #fffdfa;
+  --text: #1c1917;
+  --muted: #6b6259;
+  --rule: #e9e1d7;
+  --accent: #a83a19;
+  --band: #f6ebdf;
+  --card: #faf4ec;
+  --measure: 46rem;
+  --serif: Georgia, "Times New Roman", Times, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151311;
+    --text: #ebe5dc;
+    --muted: #a69c90;
+    --rule: #2e2825;
+    --accent: #f29b74;
+    --band: #201a16;
+    --card: #1d1815;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: anywhere;
+}
+
+.wrap {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+h1, h2, h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Masthead: the tinted band. */
+
+.masthead {
+  background: var(--band);
+  border-bottom: 1px solid var(--rule);
+  padding: 5rem 0 3.5rem;
+}
+
+.masthead .role {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.masthead h1 {
+  font-size: clamp(2.6rem, 1.8rem + 5vw, 5.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  max-width: 14ch;
+}
+
+.lede {
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 1rem + 0.9vw, 1.55rem);
+  line-height: 1.4;
+  margin: 1.75rem 0 0;
+  max-width: 34rem;
+}
+
+.contact, .profiles {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  font-size: 0.95rem;
+}
+
+.contact + .profiles {
+  margin-top: 0.6rem;
+}
+
+.contact a, .profiles a {
+  color: inherit;
+}
+
+.profiles a {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Sections and their numbered headings. */
+
+main {
+  counter-reset: section;
+  padding-top: 1rem;
+  padding-bottom: 6rem;
+}
+
+main > section {
+  margin-top: 4.5rem;
+}
+
+h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--text);
+}
+
+h2::before {
+  counter-increment: section;
+  /* Decorative; the empty alt text keeps "zero one" out of the heading's name. */
+  content: counter(section, decimal-leading-zero) / "";
+  font-size: 1.5rem;
+  font-style: italic;
+  color: var(--accent);
+}
+
+h3 {
+  font-size: 1.3rem;
+}
+
+.when, .where, .tech {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.sep {
+  margin: 0 0.15em;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Experience: a timeline. Dates sit in a column left of the rule on wide
+   screens and stack above the role on narrow ones. */
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline > li {
+  position: relative;
+  border-left: 2px solid var(--rule);
+  padding: 0 0 2.5rem 1.75rem;
+}
+
+.timeline > li:last-child {
+  padding-bottom: 0;
+}
+
+.timeline > li::before {
+  /* Drawn with a border, not a background, so it survives printing:
+     browsers drop backgrounds and shadows under print-color-adjust: economy
+     but keep borders. */
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 0.4rem;
+  width: 0;
+  height: 0;
+  border: 6px solid var(--accent);
+  border-radius: 50%;
+  outline: 3px solid var(--bg);
+}
+
+.timeline .when {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.entry .where {
+  margin-top: 0.2rem;
+}
+
+.entry ul {
+  list-style: disc;
+  margin: 0.75rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.entry li {
+  margin: 0.35rem 0;
+}
+
+.entry p {
+  margin: 0.5rem 0 0;
+}
+
+/* Education and certifications: plain entries. */
+
+.entry.plain {
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.entry.plain:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+/* Projects: a card grid. */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 1.5rem 1.5rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.card h3 {
+  font-size: 1.35rem;
+}
+
+.card p {
+  margin: 0.6rem 0 0;
+  flex: 1;
+}
+
+.tags, .pills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tags {
+  margin-top: 1.25rem;
+}
+
+.tags li, .pills li {
+  font-size: 0.82rem;
+  line-height: 1.3;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+}
+
+.tags li {
+  color: var(--accent);
+  border: 1px solid currentColor;
+}
+
+/* Skills: pill groups. */
+
+.skills {
+  margin: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.skills dt {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.skills dd {
+  margin: 0;
+}
+
+.pills li {
+  background: var(--band);
+  border: 1px solid var(--rule);
+  font-size: 0.92rem;
+  padding: 0.35rem 0.85rem;
+}
+
+/* Certifications. */
+
+.certs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.certs li {
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.75rem;
+  align-items: baseline;
+}
+
+.certs li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.cert-name {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+}
+
+.certs time {
+  margin-left: auto;
+  font-size: 0.95rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Wide screens: dates move into a column to the left of the timeline. */
+
+@media (min-width: 720px) {
+  /* The date column exists only when there are dates; a resume with none
+     would otherwise float its entries 10rem in from an empty gutter. */
+  .timeline.dated {
+    margin-left: 10rem;
+  }
+  .timeline .when {
+    position: absolute;
+    top: 0.2rem;
+    right: calc(100% + 1.75rem);
+    width: 8.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+    text-align: right;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 16px; }
+  .masthead { padding: 3.5rem 0 2.5rem; }
+  main > section { margin-top: 3.5rem; }
+  h2 { font-size: 1.7rem; }
+  .card { padding: 1.25rem; }
+  .timeline > li { padding-left: 1.4rem; }
+  .certs time { margin-left: 0; }
+}
+
+@media print {
+  :root { --bg: #fff; --text: #000; --muted: #555; --rule: #999; --accent: #000; --band: #fff; --card: #fff; }
+  html { font-size: 11pt; }
+  body { background: #fff; color: #000; }
+  .wrap { max-width: none; padding: 0; }
+  .masthead { background: none; border-bottom: 1px solid #000; padding: 0 0 1.5rem; }
+  .masthead h1 { font-size: 2.4rem; }
+  .masthead .role, h2::before, .timeline .when, .profiles a, .tags li { color: #000; }
+  .lede { font-size: 1.1rem; }
+  main { padding: 0; }
+  main > section { margin-top: 1.75rem; break-inside: avoid-page; }
+  h2 { margin-bottom: 1rem; break-after: avoid; }
+  .timeline { margin-left: 0; }
+  .timeline .when { position: static; width: auto; text-align: left; }
+  .timeline > li { border-left-color: #000; padding-bottom: 1.25rem; }
+  .timeline > li::before { border-color: #000; outline-color: #fff; }
+  .cards { display: block; }
+  .card { background: none; border: 0; border-top: 1px solid #000; border-radius: 0; padding: 1rem 0; }
+  .card:first-child { border-top: 0; padding-top: 0; }
+  .pills li { background: none; border-color: #000; }
+  .entry, .card, .certs li { break-inside: avoid; }
+  a { color: #000; text-decoration: none; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
+}
+",
+}
+`;
+
+exports[`template developer > matches its snapshot 1`] = `
+{
+  "index.html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alex Rivera — Security Engineer</title>
+<meta name="description" content="Security engineer with six years across detection, platform and application security. Builds the tooling, then runs the review.">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="site">
+<div class="rail">
+
+<header class="masthead">
+  <h1>Alex Rivera</h1>
+  <p class="role">Security Engineer</p>
+  <ul class="contact" role="list"><li><a href="mailto:alex@example.com">alex@example.com</a></li><li><a href="tel:4155550142">(415) 555-0142</a></li><li><span>San Francisco, CA</span></li></ul>
+  <ul class="links" role="list"><li><a href="https://github.com/arivera" rel="noopener">GitHub</a></li><li><a href="https://linkedin.com/in/alex-rivera-sec" rel="noopener">LinkedIn</a></li><li><a href="https://arivera.dev" rel="noopener">arivera.dev</a></li></ul>
+</header>
+
+<section id="skills" aria-labelledby="skills-h">
+  <h2 id="skills-h">Skills</h2>
+  <dl class="skills">
+    
+    <dt>Languages</dt>
+    <dd><ul class="tags" role="list"><li>Python</li><li>Go</li><li>Rust</li><li>TypeScript</li></ul></dd>
+    <dt>Platform</dt>
+    <dd><ul class="tags" role="list"><li>Kubernetes</li><li>Terraform</li><li>AWS</li></ul></dd>
+    <dt class="sr-only">Other</dt>
+    <dd><ul class="tags" role="list"><li>Threat modeling</li><li>Incident response</li></ul></dd>
+  </dl>
+</section>
+</div>
+<main class="content">
+<section id="about" aria-label="About"><p class="summary">Security engineer with six years across detection, platform and application security. Builds the tooling, then runs the review.</p></section>
+
+<section id="experience" aria-labelledby="experience-h">
+  <h2 id="experience-h">Experience</h2>
+  
+  <article class="entry">
+    <div class="entry-head">
+      <h3>Staff Security Engineer</h3>
+      <p class="when"><time datetime="2022-03">Mar 2022</time> – <span>Present</span></p>
+    </div>
+    <p class="where">Acme Security · Remote</p>
+    <ul><li>Built the detection pipeline that catches credential stuffing in under a minute.</li><li>Cut false positives by half by rewriting the scoring model.</li><li>Ran the security review programme for forty services.</li></ul>
+  </article>
+  <article class="entry">
+    <div class="entry-head">
+      <h3>Platform Engineer</h3>
+      <p class="when"><time datetime="2019-06">Jun 2019</time> – <time datetime="2022-02">Feb 2022</time></p>
+    </div>
+    <p class="where">Initech · Austin, TX</p>
+    <ul><li>Migrated forty services from VMs to Kubernetes.</li><li>On-call lead for the platform tier.</li></ul>
+  </article>
+</section>
+
+<section id="projects" aria-labelledby="projects-h">
+  <h2 id="projects-h">Projects</h2>
+  
+  <article class="entry">
+    <div class="entry-head">
+      <h3><a href="https://github.com/arivera/vigil" rel="noopener">Vigil</a></h3>
+    </div>
+    <p>A prompt-injection monitor for LLM agents. Flags indirect injections in tool output.</p>
+    <ul class="tags" role="list"><li>Go</li><li>Postgres</li></ul>
+  </article>
+  <article class="entry">
+    <div class="entry-head">
+      <h3>Sandbox Harness</h3>
+    </div>
+    <p>Runs untrusted agent tool calls in a sealed container with a syscall allowlist.</p>
+    <ul class="tags" role="list"><li>Rust</li><li>seccomp</li></ul>
+  </article>
+</section>
+
+<section id="education" aria-labelledby="education-h">
+  <h2 id="education-h">Education</h2>
+  
+  <article class="entry">
+    <div class="entry-head">
+      <h3>BS Computer Science</h3>
+      <p class="when"><time datetime="2015">2015</time> – <time datetime="2019">2019</time></p>
+    </div>
+    <p class="where">University of Texas at Austin · GPA 3.8/4.0</p>
+  </article>
+</section>
+
+<section id="certifications" aria-labelledby="certifications-h">
+  <h2 id="certifications-h">Certifications</h2>
+  <ul class="certs" role="list">
+    
+    <li><span class="cert-text"><span class="cert-name">OSCP</span> <span class="muted">·&nbsp;OffSec</span></span> <time datetime="2021" class="when">2021</time></li>
+    <li><span class="cert-text"><span class="cert-name">AWS Certified Security – Specialty</span> <span class="muted">·&nbsp;Amazon</span></span> <time datetime="2023" class="when">2023</time></li>
+  </ul>
+</section>
+</main>
+</div>
+</body>
+</html>
+",
+  "styles.css": "/* Developer — Resume → Portfolio */
+
+:root {
+  --bg: #f7f8f8;
+  --surface: #ffffff;
+  --text: #1b2027;
+  --muted: #5f6b76;
+  --rule: #dde2e7;
+  --chip-bg: #eef1f4;
+  --chip-text: #2f3944;
+  --accent: #0b7a6c;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --rail: 16rem;
+  --measure: 66rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --surface: #0d1117;
+    --text: #d8dee6;
+    --muted: #8a94a0;
+    --rule: #222a34;
+    --chip-bg: #171d25;
+    --chip-text: #b9c2cc;
+    --accent: #4fd1b8;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  border-top: 3px solid var(--accent);
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+.site {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 6rem;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  gap: 0 4rem;
+  align-items: start;
+}
+
+.rail {
+  /* Sticks where it already sits, so nothing jumps on the first scroll:
+     the site's padding-top plus the body's top rule. Capped to the
+     viewport so a tall rail scrolls instead of pinning its tail off-screen. */
+  position: sticky;
+  top: calc(3.5rem + 3px);
+  max-height: calc(100vh - 3.5rem - 3px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.content {
+  min-width: 0;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+h2::before {
+  /* Decorative; the empty alt text keeps it out of the accessible name. */
+  content: "// " / "";
+  color: var(--accent);
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+
+a:hover, a:focus-visible {
+  border-bottom-color: currentColor;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Rail */
+
+.masthead .role {
+  margin: 0.3rem 0 0;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.contact, .links {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.contact li, .links li {
+  margin: 0.4rem 0;
+  overflow-wrap: anywhere;
+}
+
+.contact {
+  color: var(--muted);
+}
+
+.contact a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.contact a:hover {
+  color: var(--text);
+}
+
+.links {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.rail > section {
+  margin-top: 2.5rem;
+}
+
+.skills {
+  margin: 0;
+}
+
+.skills dt {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 1rem 0 0.4rem;
+}
+
+.skills dt:first-child {
+  margin-top: 0;
+}
+
+.skills dd {
+  margin: 0;
+}
+
+/* A group with no category has no visible label; give it room instead. */
+.skills dt.sr-only + dd {
+  margin-top: 0.85rem;
+}
+
+/* Chips */
+
+.tags {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tags li {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border: 1px solid var(--rule);
+  overflow-wrap: anywhere;
+}
+
+/* Column */
+
+.content > section {
+  margin-bottom: 3rem;
+}
+
+.content > section:last-child {
+  margin-bottom: 0;
+}
+
+.summary {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 38rem;
+}
+
+.entry {
+  margin: 0 0 1.75rem;
+}
+
+.entry:last-child {
+  margin-bottom: 0;
+}
+
+.entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.15rem 1.5rem;
+}
+
+.when {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.where {
+  margin: 0.15rem 0 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.entry ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.entry li {
+  margin: 0.3rem 0;
+  padding-left: 0.15rem;
+}
+
+.entry li::marker {
+  color: var(--muted);
+}
+
+.entry p {
+  margin: 0.45rem 0 0;
+  max-width: 40rem;
+}
+
+.entry .tags {
+  margin-top: 0.65rem;
+}
+
+.certs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.certs li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.15rem 1.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.certs .cert-text {
+  flex: 1 1 14rem;
+}
+
+.certs li:last-child {
+  border-bottom: 0;
+}
+
+.certs .when {
+  white-space: normal;
+  text-align: right;
+}
+
+.cert-name {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  /* One column: masthead, then the content, then skills — the order of a
+     printed resume. Without this the skill chips sit between the contact
+     line and the summary and push "who I am" below the fold. */
+  .site {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 2.5rem 1rem 4rem;
+  }
+  .rail {
+    display: contents;
+  }
+  .masthead {
+    order: 0;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .content {
+    order: 1;
+  }
+  .rail > section {
+    order: 2;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+  }
+  h1 {
+    font-size: 1.7rem;
+  }
+  .contact, .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .contact li, .links li {
+    margin: 0;
+  }
+  .when {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  html { font-size: 15px; }
+  .site { padding-left: 0.85rem; padding-right: 0.85rem; }
+}
+
+@media print {
+  :root { --bg: #fff; --text: #000; --muted: #555; --rule: #999; --accent: #000; --chip-bg: #fff; --chip-text: #000; }
+  html { font-size: 10.5pt; }
+  body { background: #fff; color: #000; border-top: 0; }
+  .site { max-width: none; padding: 0; display: block; }
+  .rail { position: static; max-height: none; overflow: visible; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #999; }
+  .rail > section { margin-top: 1rem; }
+  .contact, .links { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; margin-top: 0.6rem; }
+  .contact li, .links li { margin: 0; }
+  a { color: #000; border: 0; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
+  h2 { color: #333; border-bottom-color: #999; margin-top: 1.25rem; break-after: avoid; }
+  h2::before { color: #000; }
+  .tags li { background: none; border-color: #999; color: #000; }
+  .content > section { margin-bottom: 1.5rem; }
+  .entry { break-inside: avoid; }
+  .certs li { border-bottom-color: #ccc; }
+}
+",
+}
+`;
+
+exports[`template minimal > matches its snapshot 1`] = `
+{
+  "index.html": "<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alex Rivera — Security Engineer</title>
+<meta name="description" content="Security engineer with six years across detection, platform and application security. Builds the tooling, then runs the review.">
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="page">
+
+<header class="masthead">
+  <h1>Alex Rivera</h1>
+  <p class="role">Security Engineer</p>
+  <ul class="contact" role="list"><li><a href="mailto:alex@example.com">alex@example.com</a></li><li><a href="tel:4155550142">(415) 555-0142</a></li><li><span>San Francisco, CA</span></li><li><a href="https://github.com/arivera" rel="noopener">GitHub</a></li><li><a href="https://linkedin.com/in/alex-rivera-sec" rel="noopener">LinkedIn</a></li><li><a href="https://arivera.dev" rel="noopener">arivera.dev</a></li></ul>
+</header>
+<main>
+<section id="about" aria-label="About"><p class="summary">Security engineer with six years across detection, platform and application security. Builds the tooling, then runs the review.</p></section>
+
+<section id="experience" aria-labelledby="experience-h">
+  <h2 id="experience-h">Experience</h2>
+  
+  <article class="entry">
+    <div class="entry-head">
+      <h3>Staff Security Engineer</h3>
+      <p class="when"><time datetime="2022-03">Mar 2022</time> – <span>Present</span></p>
+    </div>
+    <p class="where">Acme Security · Remote</p>
+    <ul><li>Built the detection pipeline that catches credential stuffing in under a minute.</li><li>Cut false positives by half by rewriting the scoring model.</li><li>Ran the security review programme for forty services.</li></ul>
+  </article>
+  <article class="entry">
+    <div class="entry-head">
+      <h3>Platform Engineer</h3>
+      <p class="when"><time datetime="2019-06">Jun 2019</time> – <time datetime="2022-02">Feb 2022</time></p>
+    </div>
+    <p class="where">Initech · Austin, TX</p>
+    <ul><li>Migrated forty services from VMs to Kubernetes.</li><li>On-call lead for the platform tier.</li></ul>
+  </article>
+</section>
+
+<section id="projects" aria-labelledby="projects-h">
+  <h2 id="projects-h">Projects</h2>
+  
+  <article class="entry">
+    <div class="entry-head">
+      <h3><a href="https://github.com/arivera/vigil" rel="noopener">Vigil</a></h3>
+      <p class="tech">Go · Postgres</p>
+    </div>
+    <p>A prompt-injection monitor for LLM agents. Flags indirect injections in tool output.</p>
+  </article>
+  <article class="entry">
+    <div class="entry-head">
+      <h3>Sandbox Harness</h3>
+      <p class="tech">Rust · seccomp</p>
+    </div>
+    <p>Runs untrusted agent tool calls in a sealed container with a syscall allowlist.</p>
+  </article>
+</section>
+
+<section id="skills" aria-labelledby="skills-h">
+  <h2 id="skills-h">Skills</h2>
+  <dl class="skills">
+    
+    <dt>Languages</dt>
+    <dd>Python, Go, Rust, TypeScript</dd>
+    <dt>Platform</dt>
+    <dd>Kubernetes, Terraform, AWS</dd>
+    <dt class="sr-only">Other</dt>
+    <dd>Threat modeling, Incident response</dd>
+  </dl>
+</section>
+
+<section id="education" aria-labelledby="education-h">
+  <h2 id="education-h">Education</h2>
+  
+  <article class="entry">
+    <div class="entry-head">
+      <h3>BS Computer Science</h3>
+      <p class="when"><time datetime="2015">2015</time> – <time datetime="2019">2019</time></p>
+    </div>
+    <p class="where">University of Texas at Austin · GPA 3.8/4.0</p>
+  </article>
+</section>
+
+<section id="certifications" aria-labelledby="certifications-h">
+  <h2 id="certifications-h">Certifications</h2>
+  <ul class="certs" role="list">
+    
+    <li>OSCP <span class="muted">·&nbsp;OffSec</span> <time datetime="2021" class="muted">2021</time></li>
+    <li>AWS Certified Security – Specialty <span class="muted">·&nbsp;Amazon</span> <time datetime="2023" class="muted">2023</time></li>
+  </ul>
+</section>
+</main>
+</div>
+</body>
+</html>
+",
+  "styles.css": "/* Minimal — Resume → Portfolio */
+
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --rule: #e6e6e6;
+  --accent: #1a1a1a;
+  --measure: 40rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111213;
+    --text: #e8e8e6;
+    --muted: #9a9a96;
+    --rule: #2a2b2d;
+    --accent: #e8e8e6;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 4rem 1.25rem 6rem;
+}
+
+h1, h2, h3 {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+}
+
+h1 {
+  font-size: 2.4rem;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: 0.85rem;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin: 3rem 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+h3 {
+  font-size: 1.15rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.masthead .role {
+  margin: 0.35rem 0 0;
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+.contact {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  font-size: 0.95rem;
+}
+
+.summary {
+  font-size: 1.1rem;
+  margin: 2.5rem 0 0;
+}
+
+.entry {
+  margin: 0 0 1.75rem;
+}
+
+.entry:last-child {
+  margin-bottom: 0;
+}
+
+.entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.when, .tech, .where {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.where {
+  margin-top: 0.15rem;
+}
+
+.entry ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.entry li {
+  margin: 0.25rem 0;
+}
+
+.entry p {
+  margin: 0.5rem 0 0;
+}
+
+.skills {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+}
+
+.skills dt {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.skills dd {
+  margin: 0;
+}
+
+.certs {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.certs li {
+  margin: 0.35rem 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* An uncategorised group has a hidden dt; its dd takes the whole row. */
+.skills dt.sr-only + dd {
+  grid-column: 1 / -1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  html { font-size: 16px; }
+  .page { padding-top: 2.5rem; }
+  h1 { font-size: 2rem; }
+  .entry-head { flex-direction: column; align-items: flex-start; gap: 0.1rem; }
+  .skills { grid-template-columns: 1fr; gap: 0.15rem 0; }
+  .skills dd { margin-bottom: 0.6rem; }
+}
+
+@media print {
+  /* Tokens, not just body colour: every muted rule must resolve to ink. */
+  :root { --bg: #fff; --text: #000; --muted: #555; --rule: #999; --accent: #000; }
+  html { font-size: 11pt; }
+  body { background: #fff; color: #000; }
+  .page { max-width: none; padding: 0; }
+  a { color: #000; text-decoration: none; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
+  h2 { margin-top: 1.5rem; break-after: avoid; }
+  .entry { break-inside: avoid; }
+}
+",
+}
+`;

@@ -10,12 +10,43 @@
 import type { Basics, Link, Resume } from "../schema/resume";
 import { displayUrl, html, join, mailto, safeUrl, tel, type Html } from "./escape";
 
+const MONTHS: Record<string, string> = {
+  jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+  jul: "07", aug: "08", sep: "09", sept: "09", oct: "10", nov: "11", dec: "12",
+};
+
+/**
+ * A machine-readable date for the forms resumes use, or null.
+ * "Mar 2022" → 2022-03, "06/2019" → 2019-06, "2019" → 2019. Anything else —
+ * "Present", "Spring 2020", "Q3" — is text, and <time> without a real
+ * datetime is a lie to assistive tech and search engines alike.
+ */
+export function isoDate(text: string): string | null {
+  const trimmed = text.trim();
+  let match = /^([A-Za-z]{3,9})\.?\s+((?:19|20)\d{2})$/.exec(trimmed);
+  if (match) {
+    const month = MONTHS[match[1]!.toLowerCase().slice(0, 4)] ?? MONTHS[match[1]!.toLowerCase().slice(0, 3)];
+    return month ? `${match[2]}-${month}` : null;
+  }
+  match = /^(\d{1,2})\/((?:19|20)\d{2})$/.exec(trimmed);
+  if (match) return `${match[2]}-${match[1]!.padStart(2, "0")}`;
+  if (/^(?:19|20)\d{2}$/.test(trimmed)) return trimmed;
+  return null;
+}
+
+/** A date as <time datetime> when it parses, plain text when it does not. */
+export function dateText(text: string, className?: string): Html {
+  const iso = isoDate(text);
+  const cls = className ? html` class="${className}"` : "";
+  return iso ? html`<time datetime="${iso}"${cls}>${text}</time>` : html`<span${cls}>${text}</span>`;
+}
+
 /** "Mar 2022 – Present", "2015 – 2019", "2023", or nothing. */
 export function dateSpan(start?: string, end?: string, current?: boolean): Html | null {
   const to = current ? "Present" : end;
   if (!start && !to) return null;
-  if (start && to) return html`<time>${start}</time> – <time>${to}</time>`;
-  return html`<time>${start ?? to}</time>`;
+  if (start && to) return html`${dateText(start)} – ${dateText(to)}`;
+  return dateText(start ?? to ?? "");
 }
 
 /** An anchor if the URL is safe, plain text if not. Never a broken link. */
@@ -61,7 +92,10 @@ export function pageTitle(resume: Resume): string {
 export function metaDescription(resume: Resume): string | null {
   const summary = resume.basics.summary?.trim();
   if (!summary) return null;
-  return summary.length > 160 ? `${summary.slice(0, 157).trimEnd()}…` : summary;
+  // By code point, not code unit: slicing a string at 157 can cut an emoji
+  // in half and leave a lone surrogate that encodes as U+FFFD.
+  const chars = Array.from(summary);
+  return chars.length > 160 ? `${chars.slice(0, 157).join("").trimEnd()}…` : summary;
 }
 
 /** Which sections have anything to show, in the order templates render them. */
