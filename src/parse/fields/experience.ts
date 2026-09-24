@@ -58,12 +58,20 @@ const ROLE_FEATURES: Feature<Candidate>[] = [
   feature("very long", -3, ({ text }) => text.length > 70),
 ];
 
-/** "Splunk, Terraform, Kubernetes" is a skills line, not an employer. */
-const LOOKS_LIKE_LIST = /,.*,/;
+/**
+ * "Splunk, Terraform, Kubernetes" is a skills line, not an employer — but
+ * "Northwind Freight, Chicago, IL" is the commonest company line there is,
+ * and it has two commas too. The location comes off first; what is left
+ * is a list only if commas remain between it and its parts.
+ */
+function looksLikeList(text: string): boolean {
+  const withoutLocation = extractLocation(text).rest;
+  return /,.*,/.test(withoutLocation) || /,\s*\S+,/.test(withoutLocation);
+}
 
 const COMPANY_FEATURES: Feature<Candidate>[] = [
   feature("contains a company suffix", 4, ({ text }) => COMPANY_SUFFIX.test(text)),
-  feature("looks like a comma list", -4, ({ text }) => LOOKS_LIKE_LIST.test(text)),
+  feature("looks like a comma list", -4, ({ text }) => looksLikeList(text)),
   // The strongest structural signal there is: templates put the dates on the
   // company line far more often than on the role line.
   feature("shares a line with the dates", 3, ({ onDateLine }) => onDateLine),
@@ -90,6 +98,12 @@ const HEADING_DELIMITER = /\s+(?:--|—|–|\||·|•)\s+|\s{3,}/;
  * before it.
  */
 function extractLocation(text: string): { rest: string; location?: string } {
+  // "Lumen Labs, Remote" / "Acme (Hybrid)": a work arrangement is where the
+  // job is, for the schema's purposes, and it never matches a city pattern.
+  const arrangement = /^(.*?)[\s,]*\(?\b(remote|hybrid|on-?site)\b\)?\s*$/i.exec(text);
+  if (arrangement && arrangement[1]!.trim() !== "") {
+    return { rest: arrangement[1]!.replace(/[\s,|•·–—-]+$/, "").trim(), location: arrangement[2]! };
+  }
   const match = US_LOCATION.exec(text) ?? INTL_LOCATION.exec(text);
   if (!match) return { rest: text };
   const end = match.index + match[0].length;

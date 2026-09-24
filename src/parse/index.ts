@@ -31,6 +31,7 @@ import {
 } from "./sections";
 import { splitIntoEntries, splitWhere } from "./subsections";
 import { DATE_RANGE, isBulletLine } from "./text";
+import { markIndentedBullets } from "./indent";
 import { mergeWrappedLines } from "./wrap";
 
 export type { Section, SectionKind } from "./sections";
@@ -56,34 +57,69 @@ export { linesFromText } from "./from-text";
  */
 export function entriesOf(lines: Line[], options: { loose?: boolean } = {}): Line[][] {
   const entries = splitIntoEntries(lines);
-  const dateRanges = lines.filter((line) => DATE_RANGE.test(line.text)).length;
+  const dateLines = lines.map((line) => DATE_RANGE.test(line.text));
+  const dateRanges = dateLines.filter(Boolean).length;
 
-  const afterBullets = () =>
-    splitWhere(
+  if (options.loose && entries.length === 1) {
+    const split = splitWhere(
       lines,
       (line, index) => index > 0 && !isBulletLine(line.text) && isBulletLine(lines[index - 1]!.text),
     );
-
-  if (options.loose && entries.length === 1) {
-    const split = afterBullets();
     if (split.length > 1) return split;
   }
 
   if (dateRanges <= 1 || entries.length >= dateRanges) return entries;
+  return splitByDates(lines, dateLines);
+}
 
-  const byBullets = afterBullets();
-  if (byBullets.length >= dateRanges) return byBullets;
+/**
+ * One date range per entry: the rule that holds for experience and
+ * education on essentially every resume, used when whitespace found fewer
+ * entries than there are date ranges.
+ *
+ * Templates put the date on the first line of an entry ("Role | dates"),
+ * the second ("Company / Role | dates") or the third ("Company / Role /
+ * dates"), and the boundary between two entries depends on which. The
+ * first entry tells: the number of non-bullet lines above its date line is
+ * the number of heading lines every entry carries above its own. After a
+ * date line, its bullets run until the first non-bullet line, which starts
+ * the next entry; with no bullets between two date lines, the next entry
+ * starts that many heading lines above the second date.
+ */
+function splitByDates(lines: Line[], dateLines: boolean[]): Line[][] {
+  const firstDate = dateLines.indexOf(true);
+  let headingLinesAbove = 0;
+  for (let i = firstDate - 1; i >= 0 && !isBulletLine(lines[i]!.text); i -= 1) headingLinesAbove += 1;
 
-  // Last resort: each date range starts an entry, taking the line above it
-  // along if that line is a plain heading rather than a bullet.
-  return splitWhere(lines, (line, index) => {
-    if (DATE_RANGE.test(line.text)) {
-      const above = lines[index - 1];
-      return !above || isBulletLine(above.text) || DATE_RANGE.test(above.text);
+  const starts = new Set<number>([0]);
+  let previousDate = firstDate;
+  for (let i = firstDate + 1; i < lines.length; i += 1) {
+    if (!dateLines[i]) continue;
+    let boundary = -1;
+    for (let j = previousDate + 1; j < i; j += 1) {
+      if (isBulletLine(lines[j]!.text)) continue;
+      // First non-bullet after the previous date's bullets, if any bullets came.
+      if (j > previousDate + 1 && isBulletLine(lines[j - 1]!.text)) {
+        boundary = j;
+        break;
+      }
     }
-    const below = lines[index + 1];
-    return below !== undefined && DATE_RANGE.test(below.text) && !DATE_RANGE.test(line.text);
+    if (boundary < 0) boundary = Math.max(previousDate + 1, i - headingLinesAbove);
+    starts.add(boundary);
+    previousDate = i;
+  }
+
+  const entries: Line[][] = [];
+  let current: Line[] = [];
+  lines.forEach((line, index) => {
+    if (index > 0 && starts.has(index) && current.length > 0) {
+      entries.push(current);
+      current = [];
+    }
+    current.push(line);
   });
+  if (current.length > 0) entries.push(current);
+  return entries;
 }
 
 function summaryOf(sections: Section[]): string | undefined {
@@ -116,7 +152,7 @@ export interface ParseOptions {
 
 /** Parse lines that are already in reading order. */
 export function parseLines(rawLines: Line[], options: ParseOptions = {}): ParseResult {
-  const lines = mergeWrappedLines(rawLines);
+  const lines = mergeWrappedLines(markIndentedBullets(rawLines));
   const sections = splitIntoSections(lines);
   const confidence: ConfidenceMap = {};
 

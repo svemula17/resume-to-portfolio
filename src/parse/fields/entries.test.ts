@@ -73,6 +73,24 @@ Jun 2019 - Feb 2022
     expect(entry.value.location).toBeUndefined();
   });
 
+  it("keeps a 'Company, City, ST' line as the company, location split off", () => {
+    // The commonest company line there is has two commas; it is not a list.
+    const entry = parseExperienceEntry(
+      linesFromText(`Senior Site Reliability Engineer Mar 2021 – Present
+Northwind Freight, Chicago, IL
+• Cut p99 latency by forty percent.`),
+      0,
+    );
+    expect(entry.value.company).toBe("Northwind Freight");
+    expect(entry.value.location).toBe("Chicago, IL");
+  });
+
+  it("splits a work arrangement off the company line", () => {
+    const entry = parseExperienceEntry(linesFromText("Frontend Engineer Jan 2022 – Present\nLumen Labs, Remote\n• Did things."), 0);
+    expect(entry.value.company).toBe("Lumen Labs");
+    expect(entry.value.location).toBe("Remote");
+  });
+
   it("keys confidence by entry index so the review form can flag one job", () => {
     const entry = parseExperienceEntry(linesFromText("Engineer\nAcme Inc. | 2020 - 2021"), 3);
     expect(Object.keys(entry.confidence)).toContain("experience.3.role");

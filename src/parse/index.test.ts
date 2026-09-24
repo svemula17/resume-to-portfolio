@@ -86,6 +86,25 @@ A crawler.`);
     expect(reparsed).toHaveLength(3);
   });
 
+  it("splits education entries with the date on the first line and no gaps", () => {
+    // "School | dates / Degree" twice, no blank line between. Gap splitting
+    // sees one entry; one-date-per-entry has to find two, and the second
+    // entry's degree must not be handed to the first.
+    const result = parseText(`Jane Doe
+jane@example.com
+
+EDUCATION
+Columbia University 2015 – 2017
+MS Computer Science, Data Systems
+Boston University 2008 – 2012
+BS Computer Engineering — GPA 3.7/4.0`);
+
+    expect(result.data.education).toHaveLength(2);
+    expect(result.data.education[0]!.degree).toContain("MS Computer Science");
+    expect(result.data.education[1]!.school).toContain("Boston University");
+    expect(result.data.education[1]!.degree).toContain("BS Computer Engineering");
+  });
+
   it("finds job boundaries on the text path without whitespace between them", () => {
     // No blank lines anywhere: gap-based splitting sees one entry, and the
     // heading-after-bullet fallback has to find the second job.
