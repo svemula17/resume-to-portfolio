@@ -6,8 +6,7 @@
  * the anchor works in every browser and needs no permission prompt. The URL
  * is revoked on the next tick so the click has time to dereference it.
  */
-export function downloadText(text: string, fileName: string, mime = "application/json"): void {
-  const blob = new Blob([text], { type: mime });
+export function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -17,4 +16,8 @@ export function downloadText(text: string, fileName: string, mime = "application
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function downloadText(text: string, fileName: string, mime = "application/json"): void {
+  downloadBlob(new Blob([text], { type: mime }), fileName);
 }

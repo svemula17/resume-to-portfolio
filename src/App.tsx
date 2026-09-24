@@ -8,6 +8,7 @@
  */
 import { useCallback, useMemo, useReducer, useState } from "react";
 import { SpikeApp } from "./spike/SpikeApp";
+import { ExportScreen } from "./ui/ExportScreen";
 import { ReviewForm } from "./ui/ReviewForm";
 import { UploadScreen } from "./ui/UploadScreen";
 import { useDraftPersistence } from "./ui/hooks/useDraftPersistence";
@@ -50,6 +51,9 @@ function ReviewApp() {
   // on every load and would otherwise show the boot-time banner again.
   const [restoredAt, setRestoredAt] = useState(initial.restoredAt);
   const [uploadingAnother, setUploadingAnother] = useState(false);
+  // Review or export. Not persisted: a reload lands on the review, where
+  // the restore banner is, and the export is one click away.
+  const [screen, setScreen] = useState<"review" | "export">("review");
 
   const load = useCallback(
     (parsed: Parsed) => {
@@ -59,6 +63,7 @@ function ReviewApp() {
       setUploadingAnother(false);
       setRestoreFailed(false);
       setRestoredAt(null);
+      setScreen("review");
     },
     [dispatch, resume],
   );
@@ -78,6 +83,7 @@ function ReviewApp() {
     dispatch({ type: "RESET" });
     setUploadingAnother(false);
     setRestoredAt(null);
+    setScreen("review");
   };
 
   const state = history.present;
@@ -115,6 +121,10 @@ function ReviewApp() {
     );
   }
 
+  if (screen === "export") {
+    return <ExportScreen state={state} dispatch={dispatch} onBack={() => setScreen("review")} />;
+  }
+
   return (
     <ReviewForm
       key={state.loadSeq}
@@ -126,6 +136,10 @@ function ReviewApp() {
       sourceMissing={sourceMissing}
       onUploadAnother={() => setUploadingAnother(true)}
       onStartOver={startOver}
+      onExport={() => {
+        flush();
+        setScreen("export");
+      }}
     />
   );
 }

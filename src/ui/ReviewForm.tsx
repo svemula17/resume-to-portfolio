@@ -33,6 +33,7 @@ interface Props {
   sourceMissing: boolean;
   onUploadAnother: () => void;
   onStartOver: () => void;
+  onExport: () => void;
 }
 
 function initialCollapsed(state: ReviewState): Set<EntryId> {
@@ -46,7 +47,17 @@ function initialCollapsed(state: ReviewState): Set<EntryId> {
   return collapsed;
 }
 
-function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onUploadAnother, onStartOver }: Props) {
+function Form({
+  history,
+  dispatch,
+  status,
+  flush,
+  restoredAt,
+  sourceMissing,
+  onUploadAnother,
+  onStartOver,
+  onExport,
+}: Props) {
   const state = history.present;
   const announce = useAnnounce();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -144,16 +155,27 @@ function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onU
   );
   useShortcuts(rootRef, handlers);
 
+  // The gate on leaving: an issue is a value the schema rejects, and a
+  // template cannot render one. The button is never disabled — with issues
+  // it shows them and focuses the first, which is more useful than grey.
+  const guardIssues = (): boolean => {
+    if (issueList.length === 0) return true;
+    setShowAllIssues(true);
+    walk.focusKey(issueList[0]!.key);
+    announce(`${issueList.length} ${issueList.length === 1 ? "issue" : "issues"} to fix first.`);
+    return false;
+  };
+
   const download = () => {
-    if (issueList.length > 0) {
-      setShowAllIssues(true);
-      walk.focusKey(issueList[0]!.key);
-      announce(`${issueList.length} ${issueList.length === 1 ? "issue" : "issues"} to fix before download.`);
-      return;
-    }
+    if (!guardIssues()) return;
     flush();
     downloadText(toResumeJson(state), "resume.json");
     announce("Downloaded resume.json.");
+  };
+
+  const chooseTemplate = () => {
+    if (!guardIssues()) return;
+    onExport();
   };
 
   const context: ReviewContextValue = useMemo(
@@ -194,6 +216,7 @@ function Form({ history, dispatch, status, flush, restoredAt, sourceMissing, onU
           onUploadAnother={onUploadAnother}
           onStartOver={onStartOver}
           onDownload={download}
+          onChooseTemplate={chooseTemplate}
         />
 
         <div className="rf-body">

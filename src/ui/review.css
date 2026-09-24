@@ -725,3 +725,127 @@
   color: inherit;
   border-color: currentColor;
 }
+
+/* ---------- Export screen ---------- */
+
+.rf-export {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem 3rem;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .rf-export {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rf-export-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rf-export-note {
+  font-size: 0.82rem;
+  color: var(--rf-muted);
+}
+
+.rf-export-note p {
+  margin: 0 0 0.5rem;
+}
+
+.rf-export-note code {
+  font-size: 0.78rem;
+}
+
+.rf-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.rf-picker-option {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--rf-border);
+  border-radius: 10px;
+  background: var(--rf-bg);
+  cursor: pointer;
+  box-shadow: var(--rf-shadow);
+}
+
+.rf-picker-option:hover {
+  border-color: var(--rf-border-strong);
+}
+
+.rf-picker-option:focus-visible {
+  outline: 2px solid var(--rf-focus);
+  outline-offset: 2px;
+}
+
+.rf-picker-selected {
+  border-color: var(--rf-accent);
+  box-shadow: 0 0 0 1px var(--rf-accent);
+}
+
+.rf-picker-name {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.rf-picker-desc {
+  margin: 0 0 0.5rem;
+  color: var(--rf-muted);
+  font-size: 0.85rem;
+}
+
+.rf-picker-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rf-picker-traits li {
+  font-size: 0.72rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--rf-panel);
+  border: 1px solid var(--rf-border);
+  color: var(--rf-muted);
+}
+
+.rf-preview {
+  border: 1px solid var(--rf-border);
+  border-radius: 10px;
+  background: var(--rf-panel);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+.rf-preview-frame {
+  display: block;
+  border: 0;
+  background: #fff;
+  height: calc(100vh - 8rem);
+  min-height: 480px;
+  width: 100%;
+}
+
+.rf-preview-mobile {
+  padding: 1rem 0;
+}
+
+.rf-preview-mobile .rf-preview-frame {
+  width: 390px;
+  max-width: 100%;
+  border: 1px solid var(--rf-border-strong);
+  border-radius: 24px;
+}

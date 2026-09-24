@@ -22,6 +22,7 @@ interface Props {
   onUploadAnother: () => void;
   onStartOver: () => void;
   onDownload: () => void;
+  onChooseTemplate: () => void;
 }
 
 function relative(iso: string): string {
@@ -80,6 +81,7 @@ export function ReviewHeader({
   onUploadAnother,
   onStartOver,
   onDownload,
+  onChooseTemplate,
 }: Props) {
   return (
     <header className="rf-header">
@@ -130,8 +132,11 @@ export function ReviewHeader({
         <button type="button" className="rf-btn rf-btn-small" onClick={onStartOver}>
           Start over
         </button>
-        <button type="button" className="rf-btn rf-btn-primary rf-btn-small" onClick={onDownload}>
-          Download resume.json
+        <button type="button" className="rf-btn rf-btn-small" onClick={onDownload} title="The data alone, as JSON">
+          resume.json
+        </button>
+        <button type="button" className="rf-btn rf-btn-primary rf-btn-small" onClick={onChooseTemplate}>
+          Choose template ›
         </button>
       </div>
     </header>
