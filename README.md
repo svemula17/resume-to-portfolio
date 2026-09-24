@@ -6,9 +6,9 @@ Everything happens in the browser. The resume is never uploaded, there is no
 backend, no LLM, and no network request at runtime. Parsing is rule-based, so
 it is deterministic, debuggable, free, and works offline.
 
-> **Status: stage 3 of 6.** Upload, parse, review and download `resume.json`
-> all work. There are no templates and no site export yet — that is stage 4.
-> See [Build plan](#build-plan).
+> **Status: stage 4 of 6.** Upload, parse, review, pick a template, preview,
+> download the site as a ZIP. Stage 5 is the ship list: skills data, deploy,
+> attribution. See [Build plan](#build-plan).
 
 ## Why build it this way
 
@@ -71,7 +71,7 @@ Upload (PDF / DOCX)
       |
       v
   [ REVIEW  ]   editable form; low-confidence fields flagged
-      |             <- you are here
+      |
       v
   [ RENDER  ]   resume.json + templateId -> { index.html, styles.css }
       |
@@ -109,7 +109,15 @@ src/
     hooks/                autosave, the flag walk, shortcuts
     components/           FieldInput, EntryCard, SectionList, SourcePanel, …
     ReviewForm.tsx        the stage-3 screen
+    ExportScreen.tsx      the stage-4 screen: picker, preview, ZIP
     UploadScreen.tsx      file or pasted text
+    export/zip.ts         fflate
+  templates/
+    escape.ts             the html tag; every interpolation escapes
+    parts.ts              dateSpan, link, contactItems — shared pieces
+    render.ts             registry + README; inlineForPreview
+    minimal/ developer/ creative/   each: html.ts, css.ts, meta.ts
+    fixtures.ts           FULL, SPARSE, HOSTILE
   spike/                  the stage-1 overlay, behind ?debug
 fixtures/
   text/                   invented plain-text resumes (the DOCX shape)
@@ -311,6 +319,45 @@ the source text before it drops your edits.
 `fixtures/resumes/README.md` has the stopwatch protocol. The reference run
 on the worst-case fixture is 8 stops and 4 clicks.
 
+## Templates and export
+
+Three templates, each a pure function from a normalised `Resume` to
+`index.html` and `styles.css`. The ZIP adds a `README.md` with deploy steps.
+No JavaScript, no external requests, system fonts only; open `index.html`
+from the unzipped folder and it works.
+
+| | |
+| --- | --- |
+| **Minimal** | One quiet column, serif headings, print-first. |
+| **Developer** | Sticky rail with contact and skill chips beside the content; mono accents; dark-native. |
+| **Creative** | Editorial: display name over a warm band, numbered sections, a timeline, a card grid. |
+
+### The escaping boundary
+
+Every byte of user text that reaches an output file goes through
+`src/templates/escape.ts`. Templates build markup with an `html` tagged
+template that escapes every interpolated string; only a value already
+marked as markup passes through. A template author cannot forget to escape
+because there is nothing to remember.
+
+URLs are an allowlist — `http`, `https`, `mailto`, `tel` — never a
+blocklist. A bare `github.com/you` gets `https://`; `javascript:`, `data:`
+and anything with a control character in it become plain text. Bidi
+overrides and C0 controls are stripped at the boundary so no output can
+carry the characters that make `moc.live` read as `evil.com`.
+
+`src/templates/fixtures.ts` has a hostile resume with a payload in every
+string field. Every template renders it in the test suite, and the output
+of every file in the ZIP — README included, since Markdown is rendered — is
+checked for live markup.
+
+### The preview
+
+A blob-URL iframe with `sandbox=""`: no scripts, no same-origin, no
+navigation, no forms. The site has no scripts, so `allow-scripts` is not
+needed — and it must never be combined with `allow-same-origin`, which
+would let a sandboxed script reach the parent origin.
+
 ## Build plan
 
 | Stage | Goal | Status |
@@ -319,8 +366,8 @@ on the worst-case fixture is 8 stops and 4 clicks.
 | 1 | Reading-order spike | ✅ done — awaiting corpus scoring |
 | 2 | Parser: sections, subsections, field scoring | ✅ done — 1 real resume at 40/40, 0 flagged |
 | 3 | Review form generated from the schema | ✅ done — worst-case fixture in 8 stops + 4 clicks |
-| 4 | Templates and ZIP export | next |
-| 5 | Ship: skills data, deploy, docs | |
+| 4 | Templates and ZIP export | ✅ done — 3 templates, hostile-input tested, ZIP opens offline |
+| 5 | Ship: skills data, deploy, docs | next |
 
 Out of scope for v1: OCR, three-column and sidebar layouts, LinkedIn import,
 one-click deploy, accounts, custom colour theming, multi-page output.
