@@ -24,8 +24,12 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { existsSync } from "node:fs";
+import { convertToHtml } from "mammoth";
 import { loadVocabulary } from "../../src/data/vocabulary";
+import { htmlToText } from "../../src/extract/docx-html";
 import { toReadingOrder } from "../../src/layout/index";
+import { linesFromText } from "../../src/parse/from-text";
 import { parseLines } from "../../src/parse/index";
 import { detrackLines } from "../../src/parse/tracking";
 import type { Page, TextItem } from "../../src/extract/types";
@@ -290,8 +294,19 @@ const vocabulary = await loadVocabulary();
 
 const rows: Row[] = [];
 for (const entry of entries) {
-  const pages = await extract(join(DIR, `${entry.id}.pdf`));
-  const lines = toReadingOrder(pages);
+  // A .docx entry goes through the product's DOCX path — mammoth, then the
+  // HTML reader — and its "layout" is whatever the table reader decided.
+  const docxPath = join(DIR, `${entry.id}.docx`);
+  const isDocx = existsSync(docxPath);
+  let lines;
+  let pages: Page[] = [];
+  if (isDocx) {
+    const html = await convertToHtml({ buffer: readFileSync(docxPath) });
+    lines = linesFromText(htmlToText(html.value));
+  } else {
+    pages = await extract(join(DIR, `${entry.id}.pdf`));
+    lines = toReadingOrder(pages);
+  }
   // Reading order is judged on the text after tracking is undone, which is
   // the parser's first step and purely textual; a tracked title is not a
   // layout error.
@@ -300,13 +315,13 @@ for (const entry of entries) {
   const order = readingOrderScore(text, units(entry.truth, entry.sectionOrder));
   const fields = fieldScore(parsed, entry.truth);
   const { toPageReadingOrders } = await import("../../src/layout/index");
-  const detected = toPageReadingOrders(pages).map((p) => (p.layout.type === "single" ? "1" : "2")).join("");
+  const detected = isDocx ? "docx" : toPageReadingOrders(pages).map((p) => (p.layout.type === "single" ? "1" : "2")).join("");
   rows.push({
     id: entry.id,
     family: entry.family,
     layout: entry.layout,
     person: entry.person,
-    pages: pages.length,
+    pages: isDocx ? 0 : pages.length,
     layoutsDetected: detected,
     order: order.score,
     fields: fields.total === 0 ? 1 : fields.right / fields.total,

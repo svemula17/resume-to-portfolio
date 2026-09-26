@@ -362,25 +362,29 @@ would let a sandboxed script reach the parent origin.
 
 ## The scored corpus
 
-`fixtures/corpus/` holds twenty-one PDFs: three invented people rendered
-through seven layouts that imitate real templates — the Word classic, the
+`fixtures/corpus/` holds twenty-one PDFs and nine DOCX files: three invented
+people rendered through seven PDF layouts that imitate real templates — the Word classic, the
 ATS-safe plain document, a dense paid-builder column, a timeline with a date
 rail, a full-width header over two columns, and sidebars left and right —
 printed by headless Chrome, so the text layer has the properties real
-exports have (no bullet glyphs, tracked headings, kerned pairs glued).
+exports have (no bullet glyphs, tracked headings, kerned pairs glued) — and
+through three DOCX shapes written directly as OOXML: Word's default with
+tab-stopped dates and numbered bullets, a two-column built as a single-row
+table, and a plain document with typed dashes.
 
 Every PDF is scored by running the real pipeline and comparing to the
 resume it was rendered from. The truth is known, so scoring is automatic:
 
 ```bash
-npm run corpus:score       # scoreboard → fixtures/corpus/SCOREBOARD.md
-npm run corpus:build       # regenerate the PDFs (needs Chrome)
+npm run corpus:score        # scoreboard → fixtures/corpus/SCOREBOARD.md
+npm run corpus:build        # regenerate the PDFs (needs Chrome)
+npm run corpus:build:docx   # regenerate the DOCX files (needs nothing)
 ```
 
 | Family | Entries | Reading order | Fields |
 | --- | --- | --- | --- |
-| single-column | 12 | 100% (gate 90%) | 99% |
-| two-column | 9 | 100% (gate 60%) | 99% |
+| single-column | 18 | 100% (gate 90%) | 100% |
+| two-column | 12 | 100% (gate 60%) | 99% |
 
 Reading order is the build plan's go/no-go gate; both families pass it with
 room. The corpus is what found every parser defect fixed since stage 2 —

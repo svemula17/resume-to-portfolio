@@ -1,21 +1,26 @@
 /**
  * DOCX extraction via mammoth.
  *
- * extractRawText, not convertToHtml, on purpose: the whole point is that DOCX
- * feeds the *same* rule engine as PDF. Converting to HTML would produce a
- * second, differently-shaped input and a second parser to maintain — and it
- * would mean accepting untrusted markup from a user's file, which mammoth does
- * not sanitise.
+ * convertToHtml, then a reader of mammoth's HTML back into lines — not
+ * extractRawText, which was the first choice and the wrong one. Raw text
+ * drops list markers (a Word bullet is numbering, not a character), so
+ * every bullet arrived as a heading line, and it puts a blank line after
+ * every paragraph, which the entry splitter read as a boundary each time.
+ * The HTML keeps bullets, tabs and tables; docx-html.ts turns those into
+ * the same text shape the PDF path produces, so one parser serves both.
  *
- * Note what is lost: a DOCX arrives with no geometry at all. There is no x/y,
- * so there is nothing for column detection to do. Section detection on a DOCX
- * has to fall back to keyword matching, since the "bold and alone on its line"
- * heuristic needs positions the raw-text path does not carry.
+ * The HTML never reaches the DOM. It is parsed as a string for its text,
+ * which is what makes accepting mammoth's unsanitised markup safe here.
+ *
+ * What is still lost: geometry. There is no x/y, so column detection has
+ * nothing to do — but a two-column DOCX is a table, and the table reader
+ * knows which way to read one.
  */
 // Imported as "mammoth" rather than "mammoth/mammoth.browser": the package's
 // `browser` field already swaps its two Node-only modules for browser builds,
 // and the bare specifier is the one that carries type declarations.
-import { extractRawText } from "mammoth";
+import { convertToHtml } from "mammoth";
+import { htmlToText } from "./docx-html";
 
 /** Thrown when a DOCX yields nothing readable. */
 export class EmptyDocxError extends Error {
@@ -32,8 +37,8 @@ export class EmptyDocxError extends Error {
  */
 export async function extractDocxText(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
-  const result = await extractRawText({ arrayBuffer });
-  const text = result.value.trim();
+  const result = await convertToHtml({ arrayBuffer });
+  const text = htmlToText(result.value).trim();
 
   if (text === "") {
     throw new EmptyDocxError(
