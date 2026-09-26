@@ -7,6 +7,7 @@
  * the overlay is still the fastest way to see why a PDF read the way it did.
  */
 import { lazy, Suspense, useCallback, useMemo, useReducer, useState } from "react";
+import { ErrorBoundary } from "./ui/components/ErrorBoundary";
 import { ExportScreen } from "./ui/ExportScreen";
 import { ReviewForm } from "./ui/ReviewForm";
 import { UploadScreen } from "./ui/UploadScreen";
@@ -130,13 +131,13 @@ function ReviewApp() {
     );
   }
 
-  if (screen === "export") {
-    return <ExportScreen state={state} dispatch={dispatch} onBack={() => setScreen("review")} />;
-  }
-
   return (
-    <ReviewForm
-      key={state.loadSeq}
+    <ErrorBoundary onReset={startOver}>
+      {screen === "export" ? (
+        <ExportScreen state={state} dispatch={dispatch} onBack={() => setScreen("review")} />
+      ) : (
+        <ReviewForm
+          key={state.loadSeq}
       history={history}
       dispatch={dispatch}
       status={status}
@@ -145,10 +146,12 @@ function ReviewApp() {
       sourceMissing={sourceMissing}
       onUploadAnother={() => setUploadingAnother(true)}
       onStartOver={startOver}
-      onExport={() => {
-        flush();
-        setScreen("export");
-      }}
-    />
+          onExport={() => {
+            flush();
+            setScreen("export");
+          }}
+        />
+      )}
+    </ErrorBoundary>
   );
 }
